@@ -124,8 +124,8 @@ describe("POST /api/contact", () => {
     expect((body.fields as Record<string, string>).message).toBeTruthy();
   });
 
-  it("drops a submission that filled either trap field", async () => {
-    for (const trap of ["company", "contact_reference"]) {
+  it("drops a submission that filled any trap field", async () => {
+    for (const trap of ["company", "contactReference", "contact_reference"]) {
       const rec = recorder();
       await handler(request("POST", validBody({ [trap]: "spam bot" })), rec.res);
 

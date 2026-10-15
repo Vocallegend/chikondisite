@@ -21,7 +21,7 @@ export const CONTACT_CATEGORIES = [
 export type ContactCategory = (typeof CONTACT_CATEGORIES)[number];
 
 /** Hidden trap fields. Must stay empty; a person never sees or fills them. */
-export const HONEYPOT_FIELDS = ["company", "contact_reference"] as const;
+export const HONEYPOT_FIELDS = ["company", "contactReference", "contact_reference"] as const;
 
 export type ContactInput = {
   name: string;
