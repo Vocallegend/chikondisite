@@ -1,0 +1,107 @@
+{
+  "_comment": "Per-route metadata for SEO. Read by the client (src/lib/seo.ts) and by scripts/prerender-meta.mjs, which bakes it into a static HTML file per route so non-JS crawlers and social scrapers get real titles, descriptions and Open Graph tags. Keep titles under ~60 chars and descriptions 120-160.",
+  "routes": [
+    {
+      "path": "/",
+      "title": "Chikondi — Real Connections Start with Chikondi",
+      "description": "Chikondi is an Android dating app for meeting people and building meaningful connections. Download the official Chikondi APK directly from this website.",
+      "priority": "1.0"
+    },
+    {
+      "path": "/download",
+      "title": "Download Chikondi for Android — Official APK",
+      "description": "Download the latest official Chikondi Android APK. See the current version, file size, release date and SHA-256 checksum, then install it on your phone.",
+      "priority": "1.0"
+    },
+    {
+      "path": "/features",
+      "title": "Chikondi Features — Discover, Match and Chat",
+      "description": "Explore what you can do in Chikondi: discover people, like and match, message your connections, build a detailed profile and stay in control of your privacy.",
+      "priority": "0.9"
+    },
+    {
+      "path": "/how-it-works",
+      "title": "How Chikondi Works — From Download to First Message",
+      "description": "A clear walkthrough of Chikondi: download the app, create your account, complete your profile, discover people and start conversations that matter.",
+      "priority": "0.8"
+    },
+    {
+      "path": "/safety",
+      "title": "Safety and Privacy on Chikondi",
+      "description": "How Chikondi approaches your safety: 18+ enforcement, blocking and reporting, moderation and the privacy practices behind your account and data.",
+      "priority": "0.8"
+    },
+    {
+      "path": "/install",
+      "title": "How to Install Chikondi on Android",
+      "description": "Step-by-step instructions for installing the official Chikondi APK on Android, including what to do if Android shows a security warning during install.",
+      "priority": "0.8"
+    },
+    {
+      "path": "/about",
+      "title": "About Chikondi",
+      "description": "Chikondi is built to help people in Zambia and beyond discover real connections. Read what the app is for and how it is made.",
+      "priority": "0.6"
+    },
+    {
+      "path": "/help",
+      "title": "Chikondi Help Centre",
+      "description": "Answers to common questions about downloading, installing, updating and using Chikondi, plus how to reach support when you need a hand.",
+      "priority": "0.6"
+    },
+    {
+      "path": "/faq",
+      "title": "Chikondi FAQ — Frequently Asked Questions",
+      "description": "Frequently asked questions about the Chikondi Android app, APK downloads, Android security warnings, updates and account support.",
+      "priority": "0.6"
+    },
+    {
+      "path": "/contact",
+      "title": "Contact Chikondi Support",
+      "description": "Contact the Chikondi team about download or installation problems, security concerns, bugs and general enquiries. We read every message.",
+      "priority": "0.6"
+    },
+    {
+      "path": "/releases",
+      "title": "Chikondi Release Notes",
+      "description": "The release history of the Chikondi Android app: version numbers, release dates, file sizes and SHA-256 checksums for every published build.",
+      "priority": "0.7"
+    },
+    {
+      "path": "/privacy",
+      "title": "Privacy Policy — Chikondi",
+      "description": "How Chikondi collects, uses, stores and protects your personal information, and the choices you have over your data.",
+      "priority": "0.4"
+    },
+    {
+      "path": "/terms",
+      "title": "Terms of Service — Chikondi",
+      "description": "The terms that govern your use of the Chikondi app, including eligibility, conduct, moderation and liability.",
+      "priority": "0.4"
+    },
+    {
+      "path": "/guidelines",
+      "title": "Community Guidelines — Chikondi",
+      "description": "The standards that keep Chikondi a respectful, honest place for adults to meet: consent, honesty, reporting and what is not tolerated.",
+      "priority": "0.4"
+    },
+    {
+      "path": "/legal/safety-policy",
+      "title": "Safety Policy — Chikondi",
+      "description": "How Chikondi approaches member safety, what its tools do, and what it does not promise about the people you meet.",
+      "priority": "0.3"
+    },
+    {
+      "path": "/legal/data-retention",
+      "title": "Data Retention Policy — Chikondi",
+      "description": "How long Chikondi keeps different categories of personal data, and when it deletes or anonymises them.",
+      "priority": "0.3"
+    },
+    {
+      "path": "/legal/law-enforcement",
+      "title": "Law Enforcement Policy — Chikondi",
+      "description": "How Chikondi validates and responds to lawful requests for user information.",
+      "priority": "0.3"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+# Build output
+dist/
+.vercel/
+*.local
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+
+# Environment files (may contain keys). Never commit real values — only the
+# placeholder template is tracked.
+.env
+.env.*
+!.env.example
+
+# Local APK drop-zone. The release artifact is NOT committed: it is uploaded to
+# external storage (GitHub Releases, object storage) and referenced from the
+# release manifest. See README.md -> "Release storage".
+public/releases/*.apk
+!public/releases/.gitkeep
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/

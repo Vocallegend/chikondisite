@@ -1,0 +1,181 @@
+@import "tailwindcss";
+
+/*
+ * Chikondi design tokens.
+ *
+ * The colours are the app's own Tailwind tokens (src/index.css in the Android
+ * project), copied here in oklch so the website and the app are the same brand
+ * rather than two interpretations of it:
+ *
+ *   brand red    oklch(0.55 0.22 27)          the app's primary
+ *   deep ink     oklch(0.129 0.042 264.695)   the app's dark background
+ *   navy card    oklch(0.208 0.042 265.755)   the app's dark surface
+ *   gold accent  oklch(0.845 0.155 88.5)      the app's accent
+ *
+ * The site is dark-first because the app is. Every foreground/background pair
+ * below is picked to clear WCAG AA for body text.
+ */
+@theme {
+  --color-brand-50: oklch(0.971 0.013 20);
+  --color-brand-100: oklch(0.936 0.032 22);
+  --color-brand-200: oklch(0.885 0.062 23);
+  --color-brand-300: oklch(0.808 0.106 24);
+  --color-brand-400: oklch(0.704 0.166 25);
+  --color-brand-500: oklch(0.55 0.22 27);
+  --color-brand-600: oklch(0.505 0.213 27);
+  --color-brand-700: oklch(0.455 0.188 27);
+  --color-brand-800: oklch(0.405 0.16 27);
+  --color-brand-900: oklch(0.36 0.135 27);
+  --color-brand-950: oklch(0.24 0.09 27);
+
+  --color-ink-50: oklch(0.984 0.003 247.858);
+  --color-ink-100: oklch(0.968 0.007 247.896);
+  --color-ink-200: oklch(0.929 0.013 255.508);
+  --color-ink-300: oklch(0.869 0.022 252.894);
+  --color-ink-400: oklch(0.704 0.04 256.788);
+  --color-ink-500: oklch(0.554 0.046 257.417);
+  --color-ink-600: oklch(0.446 0.043 257.281);
+  --color-ink-700: oklch(0.372 0.044 257.287);
+  --color-ink-800: oklch(0.279 0.041 260.031);
+  --color-ink-900: oklch(0.208 0.042 265.755);
+  --color-ink-950: oklch(0.129 0.042 264.695);
+
+  --color-gold-300: oklch(0.93 0.09 92);
+  --color-gold-400: oklch(0.905 0.12 92);
+  --color-gold-500: oklch(0.845 0.155 88.5);
+  --color-gold-600: oklch(0.74 0.15 80);
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --radius-card: 1.25rem;
+
+  --animate-glow: glow 9s ease-in-out infinite;
+  --animate-rise: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translate3d(0, -2%, 0) scale(1.06);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-ink-950);
+    color: var(--color-ink-100);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-500);
+    color: white;
+  }
+
+  /* A visible focus ring everywhere, including inside dark panels. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Motion is decorative on this site; remove it entirely when asked. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+/* Page-level horizontal gutter, used by every section. */
+@utility container-page {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 80rem;
+  padding-inline: 1.25rem;
+
+  @media (min-width: 640px) {
+    padding-inline: 2rem;
+  }
+
+  @media (min-width: 1024px) {
+    padding-inline: 2.5rem;
+  }
+}
+
+/* Frosted panel used for cards and download summary. */
+@utility panel {
+  border-radius: var(--radius-card);
+  border: 1px solid
+    color-mix(in oklab, var(--color-ink-100) 12%, transparent);
+  background-color: color-mix(in oklab, var(--color-ink-900) 72%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+@utility text-gradient-brand {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-brand-300),
+    var(--color-brand-500) 55%,
+    var(--color-gold-500)
+  );
+  background-clip: text;
+  color: transparent;
+}
+
+/* Long hex checksums must wrap rather than widen the layout on a phone. */
+@utility break-checksum {
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}

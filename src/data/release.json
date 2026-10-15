@@ -1,0 +1,25 @@
+{
+  "app": "Chikondi",
+  "packageId": "zm.chikondi.app",
+  "channel": "stable",
+  "releases": [
+    {
+      "versionCode": 2,
+      "versionName": "1.0.1",
+      "published": true,
+      "releaseDate": "2026-10-15",
+      "builtAt": "2026-10-15T10:49:38.654Z",
+      "fileName": "chikondi-1.0.1.apk",
+      "fileSize": 7875412,
+      "sha256": "9F73AAC2F5DC36511070C4CCFCC2A159B146B8C9C8D2E800727E487B21F930B8",
+      "minimumAndroidApi": 24,
+      "minimumAndroidVersion": "7.0",
+      "releaseNotes": [
+        "Updates are delivered only through the official Chikondi website.",
+        "More reliable notification delivery, including when your phone is optimising battery.",
+        "Android update integrity hardened with the APK Signature Scheme v3."
+      ],
+      "downloadUrl": ""
+    }
+  ]
+}

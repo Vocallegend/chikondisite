@@ -1,0 +1,8 @@
+{
+  "_comment": "Operator-maintained release notes, keyed by versionName. generate-release-manifest.mjs copies the entry for a version into src/data/release.json. Leave a version out to show 'release notes not available'. Do not add claims a release cannot support.",
+  "1.0.1": [
+    "Updates are delivered only through the official Chikondi website.",
+    "More reliable notification delivery, including when your phone is optimising battery.",
+    "Android update integrity hardened with the APK Signature Scheme v3."
+  ]
+}

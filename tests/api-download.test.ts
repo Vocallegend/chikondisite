@@ -1,0 +1,113 @@
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import handler from "../api/download";
+import type { ApiRequest, ApiResponse } from "../server/http";
+import releaseJson from "../src/data/release.json";
+
+type Recorder = {
+  res: ApiResponse;
+  status: number;
+  body: unknown;
+  headers: Record<string, string | number | string[]>;
+  redirect: { status: number; url: string } | null;
+};
+
+function recorder(): Recorder {
+  const state: Recorder = {
+    status: 0,
+    body: undefined,
+    headers: {},
+    redirect: null,
+    res: undefined as unknown as ApiResponse,
+  };
+  const res: ApiResponse = {
+    status(code) {
+      state.status = code;
+      return res;
+    },
+    json(body) {
+      state.body = body;
+    },
+    send(body) {
+      state.body = body;
+    },
+    setHeader(name, value) {
+      state.headers[name] = value;
+    },
+    end() {
+      /* no-op */
+    },
+    redirect(status, url) {
+      state.redirect = { status, url };
+      state.status = status;
+    },
+  };
+  state.res = res;
+  return state;
+}
+
+const PUBLISHED = releaseJson.releases.find((release) => release.published)!;
+
+beforeEach(() => {
+  delete process.env.RELEASE_DOWNLOAD_URL;
+});
+
+afterEach(() => {
+  delete process.env.RELEASE_DOWNLOAD_URL;
+});
+
+describe("GET /downloads/chikondi.apk", () => {
+  it("redirects (302, not 301) to the configured published APK", () => {
+    process.env.RELEASE_DOWNLOAD_URL = "https://cdn.example.com/chikondi-1.0.1.apk";
+    const rec = recorder();
+    handler({ method: "GET", headers: {} } as ApiRequest, rec.res);
+
+    expect(rec.redirect).toEqual({
+      status: 302,
+      url: "https://cdn.example.com/chikondi-1.0.1.apk",
+    });
+    expect(rec.headers["X-Chikondi-Version"]).toBe(PUBLISHED.versionName);
+    expect(rec.headers["Cache-Control"]).toBe("no-store");
+  });
+
+  it("answers HEAD the same way as GET (no body, same redirect)", () => {
+    process.env.RELEASE_DOWNLOAD_URL = "https://cdn.example.com/chikondi-1.0.1.apk";
+    const rec = recorder();
+    handler({ method: "HEAD", headers: {} } as ApiRequest, rec.res);
+
+    expect(rec.redirect?.status).toBe(302);
+    expect(rec.redirect?.url).toBe("https://cdn.example.com/chikondi-1.0.1.apk");
+  });
+
+  it("returns a real 503 with setup instructions when nothing is configured", () => {
+    const rec = recorder();
+    handler({ method: "GET", headers: {} } as ApiRequest, rec.res);
+
+    expect(rec.redirect).toBeNull();
+    expect(rec.status).toBe(503);
+    const body = rec.body as Record<string, unknown>;
+    expect(body.error).toBe("download_unavailable");
+    expect(String(body.message)).toContain("RELEASE_DOWNLOAD_URL");
+    // It must never pretend a download exists.
+    expect(rec.headers["X-Chikondi-Version"]).toBeUndefined();
+  });
+
+  it("refuses a non-https override rather than redirecting to it", () => {
+    process.env.RELEASE_DOWNLOAD_URL = "http://insecure.example.com/app.apk";
+    const rec = recorder();
+    handler({ method: "GET", headers: {} } as ApiRequest, rec.res);
+
+    expect(rec.redirect).toBeNull();
+    expect(rec.status).toBe(503);
+  });
+});
+
+describe("method handling", () => {
+  it("rejects anything other than GET/HEAD with 405", () => {
+    const rec = recorder();
+    handler({ method: "POST", headers: {} } as ApiRequest, rec.res);
+
+    expect(rec.status).toBe(405);
+    expect(rec.headers.Allow).toBe("GET, HEAD");
+    expect(rec.redirect).toBeNull();
+  });
+});

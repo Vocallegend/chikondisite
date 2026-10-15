@@ -1,0 +1,8 @@
+# This directory is the optional local drop-zone for a published APK.
+#
+# APK files placed here are git-ignored (see ../.gitignore) because release
+# artifacts are never committed to the repository. In production the file lives
+# in external storage — a GitHub Release, an S3-compatible bucket or Vercel Blob
+# — and RELEASE_DOWNLOAD_URL points at it.
+#
+# Keep this file so the directory exists in a fresh clone.
