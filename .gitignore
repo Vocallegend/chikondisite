@@ -16,9 +16,12 @@ node_modules/
 .env.*
 !.env.example
 
-# Local APK drop-zone. The release artifact is NOT committed: it is uploaded to
-# external storage (GitHub Releases, object storage) and referenced from the
-# release manifest. See README.md -> "Release storage".
+# Hosted release artifacts. An APK published with `npm run release:publish`
+# lives in public/downloads/ and IS committed, because Vercel serves it directly
+# from the deploy — that is the download platform. See README.md -> "Publishing
+# an APK".
+#
+# public/releases/ is only a scratch drop-zone; its APKs are not committed.
 public/releases/*.apk
 !public/releases/.gitkeep
 

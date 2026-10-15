@@ -56,7 +56,29 @@ afterEach(() => {
 });
 
 describe("GET /downloads/chikondi.apk", () => {
-  it("redirects (302, not 301) to the configured published APK", () => {
+  it("redirects (302, not 301) to the APK this site hosts", () => {
+    // A published release must point somewhere real: a same-origin
+    // /downloads/... path (APK uploaded to this site) or an https URL.
+    expect(PUBLISHED.downloadUrl).not.toBe("");
+    expect(PUBLISHED.downloadUrl.startsWith("/downloads/")).toBe(true);
+
+    const rec = recorder();
+    handler({ method: "GET", headers: {} } as ApiRequest, rec.res);
+
+    expect(rec.redirect).toEqual({ status: 302, url: PUBLISHED.downloadUrl });
+    expect(rec.headers["X-Chikondi-Version"]).toBe(PUBLISHED.versionName);
+    expect(rec.headers["Cache-Control"]).toBe("no-store");
+  });
+
+  it("answers HEAD the same way as GET (no body, same redirect)", () => {
+    const rec = recorder();
+    handler({ method: "HEAD", headers: {} } as ApiRequest, rec.res);
+
+    expect(rec.redirect?.status).toBe(302);
+    expect(rec.redirect?.url).toBe(PUBLISHED.downloadUrl);
+  });
+
+  it("prefers an https override over the hosted APK", () => {
     process.env.RELEASE_DOWNLOAD_URL = "https://cdn.example.com/chikondi-1.0.1.apk";
     const rec = recorder();
     handler({ method: "GET", headers: {} } as ApiRequest, rec.res);
@@ -65,39 +87,15 @@ describe("GET /downloads/chikondi.apk", () => {
       status: 302,
       url: "https://cdn.example.com/chikondi-1.0.1.apk",
     });
-    expect(rec.headers["X-Chikondi-Version"]).toBe(PUBLISHED.versionName);
-    expect(rec.headers["Cache-Control"]).toBe("no-store");
   });
 
-  it("answers HEAD the same way as GET (no body, same redirect)", () => {
-    process.env.RELEASE_DOWNLOAD_URL = "https://cdn.example.com/chikondi-1.0.1.apk";
-    const rec = recorder();
-    handler({ method: "HEAD", headers: {} } as ApiRequest, rec.res);
-
-    expect(rec.redirect?.status).toBe(302);
-    expect(rec.redirect?.url).toBe("https://cdn.example.com/chikondi-1.0.1.apk");
-  });
-
-  it("returns a real 503 with setup instructions when nothing is configured", () => {
-    const rec = recorder();
-    handler({ method: "GET", headers: {} } as ApiRequest, rec.res);
-
-    expect(rec.redirect).toBeNull();
-    expect(rec.status).toBe(503);
-    const body = rec.body as Record<string, unknown>;
-    expect(body.error).toBe("download_unavailable");
-    expect(String(body.message)).toContain("RELEASE_DOWNLOAD_URL");
-    // It must never pretend a download exists.
-    expect(rec.headers["X-Chikondi-Version"]).toBeUndefined();
-  });
-
-  it("refuses a non-https override rather than redirecting to it", () => {
+  it("never redirects to a non-https override", () => {
     process.env.RELEASE_DOWNLOAD_URL = "http://insecure.example.com/app.apk";
     const rec = recorder();
     handler({ method: "GET", headers: {} } as ApiRequest, rec.res);
 
-    expect(rec.redirect).toBeNull();
-    expect(rec.status).toBe(503);
+    expect(rec.redirect?.url).not.toContain("insecure.example.com");
+    expect(rec.redirect?.url.startsWith("/downloads/")).toBe(true);
   });
 });
 

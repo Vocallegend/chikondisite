@@ -122,14 +122,19 @@ export function DownloadPanel({ state }: { state: LatestReleaseState }) {
         </div>
 
         {blocked && (
-          <Notice tone="warning" className="mt-6" title="The download location is not configured">
-            This deployment has no official download location set, so the button cannot reach a
-            file. The release itself is published — version {release.versionName},{" "}
-            {formatBytes(release.fileSize)}, released {formatDate(release.releaseDate)}. Set{" "}
+          <Notice tone="warning" className="mt-6" title="The APK has not been uploaded yet">
+            This deployment is not linked to an APK yet, so the button cannot reach a file. The
+            release record itself exists — version {release.versionName},{" "}
+            {formatBytes(release.fileSize)}, released {formatDate(release.releaseDate)}. Upload the
+            build with{" "}
+            <code className="rounded bg-black/40 px-1.5 py-0.5 font-mono text-xs">
+              npm run release:publish -- --apk &lt;path-to.apk&gt;
+            </code>{" "}
+            and redeploy, or point{" "}
             <code className="rounded bg-black/40 px-1.5 py-0.5 font-mono text-xs">
               RELEASE_DOWNLOAD_URL
             </code>{" "}
-            to the published APK in the deployment environment and redeploy.
+            at an external host.
           </Notice>
         )}
       </div>

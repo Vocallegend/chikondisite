@@ -7,7 +7,7 @@
     { "source": "/downloads/chikondi.apk", "destination": "/api/download" },
     { "source": "/downloads/chikondi-latest.apk", "destination": "/api/download" },
     {
-      "source": "/:path((?!assets/|api/|brand/|app/|releases/|robots.txt|sitemap.xml|.*\\.[a-zA-Z0-9]+$).*)",
+      "source": "/:path((?!assets/|api/|downloads/|brand/|app/|releases/|robots.txt|sitemap.xml|.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"
     }
   ],
@@ -44,6 +44,10 @@
     {
       "source": "/(api|downloads)/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "source": "/downloads/(.*)",
+      "headers": [{ "key": "Content-Disposition", "value": "attachment" }]
     }
   ]
 }

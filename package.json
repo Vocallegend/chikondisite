@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
+    "release:publish": "node scripts/publish-apk.mjs",
     "release:manifest": "node scripts/generate-release-manifest.mjs",
     "assets:prepare": "node scripts/prepare-assets.mjs"
   },

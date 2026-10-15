@@ -65,6 +65,21 @@ export function isHttpsUrl(value: unknown): value is string {
   return typeof value === "string" && /^https:\/\/[^\s<>"]+$/.test(value) && value.length <= 2048;
 }
 
+/**
+ * A path served by this website itself, e.g. `/downloads/chikondi-1.0.1.apk`.
+ * Used when the APK is hosted here (uploaded to public/downloads) rather than
+ * on external storage. Rejects protocol-relative (`//host`) and absolute URLs.
+ */
+export function isSitePath(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    value.startsWith("/") &&
+    !value.startsWith("//") &&
+    !/[\s:<>"]/.test(value) &&
+    value.length <= 300
+  );
+}
+
 function asRecord(raw: unknown): Record<string, unknown> | null {
   return raw !== null && typeof raw === "object" && !Array.isArray(raw)
     ? (raw as Record<string, unknown>)
@@ -116,7 +131,7 @@ export function validateRelease(raw: unknown): ReleaseEntry | null {
     minimumAndroidApi: Math.max(0, Math.trunc(num(r.minimumAndroidApi, 0))),
     minimumAndroidVersion: str(r.minimumAndroidVersion) || "Not available",
     releaseNotes: notes,
-    downloadUrl: isHttpsUrl(r.downloadUrl) ? r.downloadUrl : "",
+    downloadUrl: isHttpsUrl(r.downloadUrl) || isSitePath(r.downloadUrl) ? r.downloadUrl : "",
   };
 }
 
@@ -162,9 +177,11 @@ export function publishedReleases(manifest: ReleaseManifest | null): ReleaseEntr
 /**
  * Where this release is actually downloaded from.
  *
- * Order: the release's own recorded URL, then an explicit override. Returns null
- * when nothing usable is configured — the UI must show "download unavailable",
- * never a dead or guessed link.
+ * Order: an explicit HTTPS override, then the release's own recorded URL. The
+ * recorded URL may be an absolute HTTPS URL (external storage) or a path served
+ * by this site (e.g. `/downloads/chikondi-1.0.1.apk` when the APK is hosted in
+ * public/downloads). Returns null when nothing usable is configured — the UI
+ * must show "download unavailable", never a dead or guessed link.
  */
 export function resolveDownloadUrl(
   entry: ReleaseEntry | null,
@@ -173,6 +190,7 @@ export function resolveDownloadUrl(
   if (!entry) return null;
   if (isHttpsUrl(override)) return override;
   if (isHttpsUrl(entry.downloadUrl)) return entry.downloadUrl;
+  if (isSitePath(entry.downloadUrl)) return entry.downloadUrl;
   return null;
 }
 

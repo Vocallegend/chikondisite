@@ -66,9 +66,11 @@ describe("GET /api/releases/latest", () => {
     expect(body.fileSize).toBe(PUBLISHED.fileSize);
     expect(body.sha256).toBe(PUBLISHED.sha256);
     expect(body.published).toBe(true);
-    // No RELEASE_DOWNLOAD_URL and no manifest downloadUrl -> not available, never guessed.
-    expect(body.downloadAvailable).toBe(false);
-    expect(body.downloadUrl).toBeNull();
+    // The APK is hosted by this site, so it is available even with no
+    // RELEASE_DOWNLOAD_URL — and the URL is same-origin, never guessed.
+    expect(body.downloadAvailable).toBe(true);
+    expect(body.downloadUrl).toBe(PUBLISHED.downloadUrl);
+    expect(String(body.downloadUrl).startsWith("/downloads/")).toBe(true);
     expect(body.stableDownloadUrl).toBe("/downloads/chikondi.apk");
   });
 

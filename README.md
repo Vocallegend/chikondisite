@@ -96,7 +96,8 @@ vercel dev
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 | `npm run test` | Vitest (unit + function tests) |
-| `npm run release:manifest` | Rebuild `src/data/release.json` from a real APK |
+| `npm run release:manifest` | Rebuild `src/data/release.json` from a real APK (app repo; reads Gradle) |
+| `npm run release:publish` | Upload an APK to this site and record it (see §4.1) |
 | `npm run assets:prepare` | Re-copy logo/artwork from the app into `public/` (one-off) |
 
 Before shipping a change:
@@ -117,7 +118,7 @@ into a working one. **Only `VITE_`-prefixed values reach the browser.**
 | Variable | Scope | Effect when unset |
 | --- | --- | --- |
 | `SITE_URL` | Build | Canonical URLs, sitemap and robots use it. Without it they are root-relative. Set to the real domain. |
-| `RELEASE_DOWNLOAD_URL` | Server | Where the published APK actually lives. Without it the download button reports "unavailable" — it never guesses. |
+| `RELEASE_DOWNLOAD_URL` | Server | Optional external HTTPS host for the APK. When set it wins over the APK hosted here. Leave unset to serve the committed APK from `public/downloads/`. |
 | `RELEASE_STABLE_URL` | Server | Overrides the `/downloads/chikondi.apk` stable link. Optional. |
 | `RESEND_API_KEY` | Server | Contact form delivery. Without it `/api/contact` returns 503 and the page shows the fallback. |
 | `CONTACT_TO_EMAIL` | Server | Where contact messages are delivered. |
@@ -133,18 +134,24 @@ No APK signing key, keystore password or storage secret belongs in this project.
 ## 4. How the release system works
 
 ```
-Android build  ──►  generate-release-manifest.mjs  ──►  src/data/release.json
-                                                              │
-                     ┌────────────────────────────────────────┼───────────────────────────────┐
-                     ▼                                        ▼                               ▼
-              /download page                        /api/releases/latest            /downloads/chikondi.apk
-          (reads the manifest,                   (validated JSON metadata)          (302 to RELEASE_DOWNLOAD_URL)
-           then refreshes live)
+Android build ──► release:publish ──► public/downloads/chikondi-<version>.apk
+                       │                              │
+                       ▼                              │ (served directly by Vercel)
+                src/data/release.json                 │
+                       │                              │
+   ┌───────────────────┼──────────────────────────────┴──────────────┐
+   ▼                   ▼                                             ▼
+/download page   /api/releases/latest                    /downloads/chikondi.apk
+(reads the        (validated JSON metadata)               (302 to the newest APK)
+ manifest)
 ```
 
-The APK itself is **never committed**. The repository holds metadata; the file
-lives in external storage. That is deliberate: a multi-megabyte binary in git is
-unrecoverable history, and git is not a download host.
+By default this site **hosts the APK itself**: `npm run release:publish` copies
+the file into `public/downloads/` and Vercel serves it directly — no external
+storage, no credentials. The APK is committed so the deploy can serve it; keep
+each build under Vercel's 100 MB static-file limit. If you would rather keep
+binaries out of git, keep only the metadata step and set `RELEASE_DOWNLOAD_URL`
+to an external HTTPS host instead (§5) — the endpoint then redirects there.
 
 ### 4.1 Publishing a new release
 
@@ -157,21 +164,20 @@ unrecoverable history, and git is not a download host.
    apksigner verify --print-certs android/app/release/CHIKONDI-<version>.apk
    ```
 4. **Add release notes** to `src/data/release-notes.json`, keyed by `versionName`.
-5. **Generate the manifest** (reads the APK's real size and SHA-256):
+5. **Publish it** — copies the APK into `public/downloads/` and updates
+   `src/data/release.json` (real size and SHA-256 read from the file itself):
    ```bash
    cd website
-   npm run release:manifest -- --apk ../android/app/release/CHIKONDI-<version>.apk
+   npm run release:publish -- --apk ../android/app/release/CHIKONDI-<version>.apk --code <versionCode>
    ```
-   Confirm the printed version, size and checksum, and that `release.json` now
-   has the new entry with `"published": true`.
-6. **Upload the APK to release storage** (see §5) using a versioned file name,
-   e.g. `chikondi-<version>.apk`. Keep previous versions.
-7. **Point the site at it.** Either set `RELEASE_DOWNLOAD_URL` in Vercel to the
-   new file's HTTPS URL and redeploy, or set the release's own `downloadUrl` in
-   `release.json`. The stable URL `/downloads/chikondi.apk` starts serving the
-   new build immediately.
-8. **Deploy** (push to the production branch, or `vercel --prod`).
-9. **Verify in production**: open `/download`, check the version, size and
+   The version is read from the file name (`CHIKONDI-1.0.2.apk` → `1.0.2`); pass
+   `--version` if it is not in the name. Confirm the printed version, size and
+   checksum, and that `release.json` now has the entry with `"published": true`.
+   (To host externally instead, use `npm run release:manifest` for the metadata
+   and set `RELEASE_DOWNLOAD_URL` — see §5.)
+6. **Deploy** (commit and push, or `vercel --prod`). The stable URL
+   `/downloads/chikondi.apk` starts serving the new build immediately.
+7. **Verify in production**: open `/download`, check the version, size and
    SHA-256, download the file, and confirm its checksum matches:
    ```bash
    # Windows
@@ -180,7 +186,7 @@ unrecoverable history, and git is not a download host.
    sha256sum chikondi-<version>.apk
    ```
 
-> Only mark a release `"published": true` **after** steps 3–6 pass. An
+> Only mark a release `"published": true` **after** steps 3–5 pass. An
 > unpublished release is dropped from the manifest by validation, so an
 > unfinished build cannot leak to visitors by accident.
 
@@ -190,9 +196,10 @@ Two independent levers:
 
 - **Website rollback:** in Vercel → Deployments, promote the last good
   deployment. The site reverts to the metadata it shipped with.
-- **Release rollback:** point `RELEASE_DOWNLOAD_URL` (or the release's
-  `downloadUrl`) back at the previous version's file. Because versioned
-  artifacts are kept, the old APK is still there.
+- **Release rollback:** the previous version is still in `public/downloads/`
+  (e.g. `chikondi-1.0.0.apk`). Point the release's `downloadUrl` back at it, or
+  set `RELEASE_DOWNLOAD_URL` to any HTTPS copy. Versioned artifacts are kept, so
+  the old APK is still there.
 
 Do not delete the previous artifact until the new one is verified in production.
 
@@ -200,10 +207,17 @@ Do not delete the previous artifact until the new one is verified in production.
 
 ## 5. Release storage
 
-Any HTTPS host works. Pick one and keep the URLs stable:
+**Default: this site hosts the APK.** `npm run release:publish` writes the file
+to `public/downloads/chikondi-<version>.apk` and Vercel serves it directly. No
+extra service, no keys. Vercel's limit for a single static file is 100 MB, so
+every APK must be smaller than that.
+
+**Alternative: external HTTPS storage.** If you would rather keep binaries out
+of git, upload the APK anywhere stable and set `RELEASE_DOWNLOAD_URL` to its
+URL. Any HTTPS host works:
 
 - **GitHub Releases** — attach `chikondi-<version>.apk` to a tagged release, then
-  use the asset URL. Simple, free, versioned. Good default for this project.
+  use the asset URL. Simple, free, versioned.
 - **S3-compatible object storage** — e.g. Cloudflare R2, Backblaze B2, Supabase
   Storage. Versioned keys, a public read policy or a signed URL.
 - **Vercel Blob** — integrated with the deployment platform.
@@ -216,8 +230,8 @@ Requirements for whichever you choose:
 - Do not expose private write credentials to the serverless functions. They only
   ever perform an HTTPS redirect to a public URL.
 
-Optional local drop-zone: `public/releases/*.apk` is git-ignored, so a file can
-sit there during local testing without risk of being committed.
+`public/releases/*.apk` is git-ignored — a scratch drop-zone for local testing
+only; published APKs belong in `public/downloads/`.
 
 ---
 
@@ -232,8 +246,9 @@ git push
 ```
 
 The site is self-contained under `website/`, so it can live in its own repository
-or as a subdirectory of the app repository. Either way, the whole source tree
-belongs in git — **never the APK**.
+or as a subdirectory of the app repository. The source tree belongs in git, and
+so does the published APK under `public/downloads/` — Vercel serves it straight
+from the deploy. Keep `dist/`, `node_modules/` and secrets out.
 
 ### 6.2 Vercel
 
@@ -241,8 +256,8 @@ belongs in git — **never the APK**.
 2. Set **Root Directory** to `website`.
 3. Framework preset **Vite** is detected from `vercel.json`
    (`buildCommand: npm run build`, `outputDirectory: dist`).
-4. **Environment variables** → add the ones you need from §3, at minimum
-   `SITE_URL` and `RELEASE_DOWNLOAD_URL` for production.
+4. **Environment variables** → add the ones you need from §3. `SITE_URL` is the
+   important one; `RELEASE_DOWNLOAD_URL` is only needed for external storage.
 5. **Deploy.**
 6. **Add the domain** → Project → Settings → Domains. Then set `SITE_URL` to
    that exact origin (no trailing slash) and redeploy so canonical URLs,
@@ -250,11 +265,13 @@ belongs in git — **never the APK**.
 
 `vercel.json` already configures:
 
-- the SPA rewrite (with `/api`, `/assets`, `/brand`, `/app` and file requests
-  excluded),
-- `/downloads/*` → the download function,
+- the SPA rewrite (with `/api`, `/downloads`, `/assets`, `/brand`, `/app` and
+  file requests excluded),
+- `/downloads/chikondi.apk` and `/downloads/chikondi-latest.apk` → the download
+  function (302 to the newest APK); versioned `/downloads/chikondi-<v>.apk`
+  files are served as static files with `Content-Disposition: attachment`,
 - long-lived immutable caching for hashed assets,
-- no-store for the download redirect,
+- no-store for the download endpoint and APK files,
 - `s-maxage` caching for `/api/releases/latest`,
 - security headers (`HSTS`, `nosniff`, `X-Frame-Options`, `Referrer-Policy`,
   `Permissions-Policy`, CSP).
@@ -265,8 +282,9 @@ The site needs no always-on server and no database.
 
 `api/contact.ts` is the only function that needs credentials, and it degrades to
 a clear 503 with a configured fallback address when they are absent.
-`api/releases/latest.ts` and `api/download.ts` need only
-`RELEASE_DOWNLOAD_URL` (optional) and read the committed manifest.
+`api/releases/latest.ts` and `api/download.ts` read the committed manifest and
+need no credentials; they use `RELEASE_DOWNLOAD_URL` only when you host the APK
+externally.
 
 > **Keep the imports ESM-explicit.** Vercel runs these functions as native ES
 > modules. Every relative import across `api/`, `server/` and `shared/` must
@@ -289,13 +307,13 @@ npm run build       # production build + SEO prerender
 The tests cover:
 
 - **release validation** (`tests/release.test.ts`) — malformed versions,
-  checksums, dates, non-HTTPS URLs, unpublished releases, version ordering and
-  formatting;
+  checksums, dates, non-HTTPS URLs, site-hosted paths, unpublished releases,
+  version ordering and formatting;
 - **`/api/releases/latest`** (`tests/api-releases.test.ts`) — real manifest
   values, honest `downloadAvailable`, no leaked secrets, method handling;
 - **`/downloads/chikondi.apk`** (`tests/api-download.test.ts`) — a 302 (not 301)
-  to the configured APK, an honest 503 when nothing is configured, a refused
-  non-HTTPS override, and method handling;
+  to the hosted APK, an https override taking precedence, a refused non-HTTPS
+  override, and method handling;
 - **`/api/contact`** (`tests/api-contact.test.ts`) — configuration status,
   field validation, honeypot and too-fast rejection, the unconfigured 503,
   successful delivery through a stubbed Resend, a surfaced delivery failure,
@@ -304,9 +322,10 @@ The tests cover:
 Manual checks worth repeating after a release change:
 
 - `/download` shows the real version, size, date and checksum.
-- With `RELEASE_DOWNLOAD_URL` unset, the button reads "unavailable" rather than
-  linking somewhere wrong.
-- With it set, the button downloads the file and the checksum matches.
+- After `npm run release:publish`, `/downloads/chikondi.apk` redirects to the
+  new file, the button downloads it, and the checksum matches.
+- With no APK published and no `RELEASE_DOWNLOAD_URL`, the button reads
+  "unavailable" rather than linking somewhere wrong.
 - `/api/releases/latest` returns the same values the page shows.
 - Every route renders; the 404 page appears for an unknown URL.
 - The contact form either sends, or shows the configured fallback — it never
@@ -322,7 +341,7 @@ configured" state until they are filled in. Nothing here is invented.
 | Item | Where |
 | --- | --- |
 | Production domain | Vercel domain + `SITE_URL` |
-| APK download location | `RELEASE_DOWNLOAD_URL` or `release.json` |
+| APK download location | `public/downloads/` (via `npm run release:publish`) or `RELEASE_DOWNLOAD_URL` |
 | Contact delivery (Resend key, addresses) | Vercel env vars |
 | Legal entity, registered address, contact email | `src/data/legal.ts` → `LEGAL_PLACEHOLDERS` |
 | Company details / social links | `src/data/site.ts` → `company`, `social` |

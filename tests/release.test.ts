@@ -5,6 +5,7 @@ import {
   formatChecksum,
   formatDate,
   isHttpsUrl,
+  isSitePath,
   latestPublished,
   parseReleaseManifest,
   publishedReleases,
@@ -67,6 +68,16 @@ describe("validateRelease", () => {
 
   it("never trusts an http (non-https) download URL", () => {
     const result = validateRelease({ ...VALID, downloadUrl: "http://example.com/app.apk" });
+    expect(result?.downloadUrl).toBe("");
+  });
+
+  it("accepts a path hosted by this website", () => {
+    const result = validateRelease({ ...VALID, downloadUrl: "/downloads/chikondi-1.0.1.apk" });
+    expect(result?.downloadUrl).toBe("/downloads/chikondi-1.0.1.apk");
+  });
+
+  it("rejects a protocol-relative download path", () => {
+    const result = validateRelease({ ...VALID, downloadUrl: "//evil.example.com/app.apk" });
     expect(result?.downloadUrl).toBe("");
   });
 });
@@ -149,6 +160,25 @@ describe("resolveDownloadUrl", () => {
     expect(resolveDownloadUrl(blank, "javascript:alert(1)")).toBeNull();
     expect(resolveDownloadUrl(null)).toBeNull();
   });
+
+  it("serves the release's own hosted path", () => {
+    const hosted = validateRelease({ ...VALID, downloadUrl: "/downloads/chikondi-1.0.1.apk" });
+    expect(resolveDownloadUrl(hosted, null)).toBe("/downloads/chikondi-1.0.1.apk");
+  });
+
+  it("prefers an https override over the hosted path", () => {
+    const hosted = validateRelease({ ...VALID, downloadUrl: "/downloads/chikondi-1.0.1.apk" });
+    expect(resolveDownloadUrl(hosted, "https://cdn.example.com/latest.apk")).toBe(
+      "https://cdn.example.com/latest.apk",
+    );
+  });
+
+  it("ignores a non-https override and returns the hosted path", () => {
+    const hosted = validateRelease({ ...VALID, downloadUrl: "/downloads/chikondi-1.0.1.apk" });
+    expect(resolveDownloadUrl(hosted, "http://cdn.example.com/latest.apk")).toBe(
+      "/downloads/chikondi-1.0.1.apk",
+    );
+  });
 });
 
 describe("isHttpsUrl", () => {
@@ -158,6 +188,18 @@ describe("isHttpsUrl", () => {
     expect(isHttpsUrl("/downloads/chikondi.apk")).toBe(false);
     expect(isHttpsUrl(undefined)).toBe(false);
     expect(isHttpsUrl("https://exa mple.com")).toBe(false);
+  });
+});
+
+describe("isSitePath", () => {
+  it("accepts a same-origin path and nothing else", () => {
+    expect(isSitePath("/downloads/chikondi-1.0.1.apk")).toBe(true);
+    expect(isSitePath("/")).toBe(true);
+    expect(isSitePath("//evil.example.com/a.apk")).toBe(false);
+    expect(isSitePath("https://example.com/a.apk")).toBe(false);
+    expect(isSitePath("downloads/a.apk")).toBe(false);
+    expect(isSitePath("/a b.apk")).toBe(false);
+    expect(isSitePath(undefined)).toBe(false);
   });
 });
 
