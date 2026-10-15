@@ -53,8 +53,8 @@ function request(method: string, body?: unknown, ip?: string): ApiRequest {
 }
 
 /** A complete, human-plausible submission. `startedAt` is comfortably older
- *  than the 1500ms anti-bot threshold and well inside the one-week staleness
- *  cutoff, so it passes every non-rate-limit check by default. */
+ *  than the 1500ms anti-bot threshold, so it passes every non-rate-limit check
+ *  by default. */
 function validBody(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     name: "Grace Phiri",
@@ -124,12 +124,16 @@ describe("POST /api/contact", () => {
     expect((body.fields as Record<string, string>).message).toBeTruthy();
   });
 
-  it("drops a submission that filled the honeypot", async () => {
-    const rec = recorder();
-    await handler(request("POST", validBody({ company: "spam bot" })), rec.res);
+  it("drops a submission that filled either trap field", async () => {
+    for (const trap of ["company", "contact_reference"]) {
+      const rec = recorder();
+      await handler(request("POST", validBody({ [trap]: "spam bot" })), rec.res);
 
-    expect(rec.status).toBe(400);
-    expect((rec.body as Record<string, unknown>).error).toBe("rejected");
+      expect(rec.status).toBe(400);
+      const body = rec.body as Record<string, unknown>;
+      expect(body.error).toBe("rejected");
+      expect(body.reason).toBe("honeypot");
+    }
   });
 
   it("drops a submission returned faster than a human could read it", async () => {
@@ -137,7 +141,30 @@ describe("POST /api/contact", () => {
     await handler(request("POST", validBody({ startedAt: Date.now() })), rec.res);
 
     expect(rec.status).toBe(400);
-    expect((rec.body as Record<string, unknown>).error).toBe("rejected");
+    const body = rec.body as Record<string, unknown>;
+    expect(body.error).toBe("rejected");
+    expect(body.reason).toBe("too_fast");
+  });
+
+  it("does not treat a form left open for days as a bot", async () => {
+    const rec = recorder();
+    await handler(
+      request("POST", validBody({ startedAt: Date.now() - 1000 * 60 * 60 * 24 * 10 })),
+      rec.res,
+    );
+
+    // It clears the anti-spam gate and stops only at the missing delivery
+    // config, which is the honest 503 — not a bogus "automated" rejection.
+    expect(rec.status).toBe(503);
+    expect((rec.body as Record<string, unknown>).error).toBe("contact_not_configured");
+  });
+
+  it("rejects a submission whose clock is in the future", async () => {
+    const rec = recorder();
+    await handler(request("POST", validBody({ startedAt: Date.now() + 60_000 })), rec.res);
+
+    expect(rec.status).toBe(400);
+    expect((rec.body as Record<string, unknown>).reason).toBe("clock_skew");
   });
 
   it("returns an honest 503 when no delivery path is configured", async () => {

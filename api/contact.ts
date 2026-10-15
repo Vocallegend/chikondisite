@@ -69,8 +69,12 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
 
   const signal = spamSignal(body, Date.now());
   if (signal) {
+    // Log the reason only — never the message body or the sender's details — so
+    // a rejection can be diagnosed from the deployment logs.
+    console.warn(`contact submission rejected: ${signal}`);
     res.status(400).json({
       error: "rejected",
+      reason: signal,
       message: "This submission looked automated and was not sent.",
     });
     return;

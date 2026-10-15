@@ -20,14 +20,23 @@ export const CONTACT_CATEGORIES = [
 
 export type ContactCategory = (typeof CONTACT_CATEGORIES)[number];
 
+/** Hidden trap fields. Must stay empty; a person never sees or fills them. */
+export const HONEYPOT_FIELDS = ["company", "contact_reference"] as const;
+
 export type ContactInput = {
   name: string;
   email: string;
   subject: string;
   message: string;
   category: string;
-  /** Must stay empty. A bot fills it; a person never sees it. */
+  /**
+   * Honeypot. Kept in the contract because bots POST it directly, but the
+   * rendered form no longer uses this name: browsers autofill fields called
+   * "company" from a saved address, which a person never types.
+   */
   company?: string;
+  /** Honeypot the rendered form actually uses (obscure on purpose). */
+  contactReference?: string;
   /** Client timestamp of when the form was rendered (ms since epoch). */
   startedAt?: number;
 };
@@ -75,20 +84,28 @@ export function validateContact(raw: Record<string, unknown>): ContactValidation
 /**
  * Cheap, honest anti-abuse signals, evaluated by the server only.
  *
- * A honeypot that is filled, or a submission faster than a human can read the
+ * A trap field that is filled, or a submission faster than a human can read the
  * labels, is dropped. This is not a substitute for a rate limit and is not
  * presented as one.
+ *
+ * The time check only rejects a *too-small* elapsed time. An elapsed time that
+ * is large (a tab left open for days) is not a bot signal, and a client-supplied
+ * timestamp is trivially forged by anyone POSTing directly, so it is not treated
+ * as suspicious.
  */
 export function spamSignal(raw: Record<string, unknown>, nowMs: number): string | null {
-  const honey = raw.company;
-  if (typeof honey === "string" && honey.trim().length > 0) return "honeypot";
+  for (const field of HONEYPOT_FIELDS) {
+    const value = raw[field];
+    if (typeof value === "string" && value.trim().length > 0) return "honeypot";
+  }
 
   const startedAt = typeof raw.startedAt === "number" ? raw.startedAt : NaN;
   if (Number.isFinite(startedAt)) {
     const elapsed = nowMs - startedAt;
     if (elapsed >= 0 && elapsed < 1500) return "too_fast";
-    // A clock far in the future or a form left open for weeks: treat as suspect.
-    if (elapsed < 0 || elapsed > 1000 * 60 * 60 * 24 * 7) return "stale";
+    // Only a timestamp in the future is suspect: it means a wrong clock, which
+    // is a real (if clumsy) signal, unlike a form that was simply open a while.
+    if (elapsed < 0) return "clock_skew";
   }
   return null;
 }

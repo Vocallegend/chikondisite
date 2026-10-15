@@ -21,7 +21,7 @@ type FormState = {
   category: string;
   subject: string;
   message: string;
-  company: string;
+  contactReference: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -30,7 +30,7 @@ const EMPTY_FORM: FormState = {
   category: "General enquiry",
   subject: "",
   message: "",
-  company: "",
+  contactReference: "",
 };
 
 const inputClass =
@@ -83,7 +83,7 @@ export default function ContactPage() {
       category: form.category,
       subject: form.subject,
       message: form.message,
-      company: form.company,
+      contactReference: form.contactReference,
       startedAt: startedAt.current,
     };
 
@@ -273,17 +273,34 @@ export default function ContactPage() {
                   )}
                 </div>
 
-                {/* Honeypot: hidden from people, filled in by bots. */}
+                {/* Trap field. Hidden from people; only a bot fills it.
+                    It is deliberately NOT named anything an address autofill
+                    recognises (a field called "company" was being autofilled
+                    from saved addresses, which looked exactly like spam), and
+                    any value that still reaches it is discarded so a person's
+                    browser can never trip it. */}
                 <div aria-hidden="true" className="absolute h-0 w-0 overflow-hidden opacity-0">
-                  <label htmlFor="contact-company">Company</label>
+                  <label htmlFor="contact-reference">Leave this field empty</label>
                   <input
-                    id="contact-company"
-                    name="company"
+                    id="contact-reference"
+                    name="contact_reference"
                     type="text"
                     tabIndex={-1}
                     autoComplete="off"
-                    value={form.company}
-                    onChange={field("company")}
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    data-lpignore="true"
+                    data-1p-ignore="true"
+                    data-form-type="other"
+                    value={form.contactReference}
+                    onChange={() =>
+                      setForm((previous) =>
+                        previous.contactReference === ""
+                          ? previous
+                          : { ...previous, contactReference: "" },
+                      )
+                    }
                   />
                 </div>
 
