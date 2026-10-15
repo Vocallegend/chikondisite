@@ -8,7 +8,7 @@
  * (`shared/contact.ts`). No configuration value is ever returned to the client
  * except the operator-chosen fallback address.
  */
-import { spamSignal, validateContact } from "../shared/contact";
+import { spamSignal, validateContact } from "../shared/contact.js";
 import {
   clientIp,
   header,
@@ -16,9 +16,9 @@ import {
   readBody,
   type ApiRequest,
   type ApiResponse,
-} from "../server/http";
-import { readContactConfig, sendContactEmail } from "../server/email";
-import { checkRateLimit } from "../server/rate-limit";
+} from "../server/http.js";
+import { readContactConfig, sendContactEmail } from "../server/email.js";
+import { checkRateLimit } from "../server/rate-limit.js";
 
 const LIMIT = 5; // messages
 const WINDOW_SECONDS = 10 * 60; // per ten minutes, per IP

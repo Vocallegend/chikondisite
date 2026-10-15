@@ -9,15 +9,15 @@
  * compatibility) and one download URL. It never exposes signing material,
  * storage credentials, internal file paths or unpublished builds.
  */
-import releaseManifest from "../../src/data/release.json";
+import releaseManifest from "../../src/data/release.json" with { type: "json" };
 import {
   latestPublished,
   parseReleaseManifest,
   resolveDownloadUrl,
   type ReleaseEntry,
-} from "../../shared/release";
-import type { ApiRequest, ApiResponse } from "../../server/http";
-import { methodNotAllowed } from "../../server/http";
+} from "../../shared/release.js";
+import type { ApiRequest, ApiResponse } from "../../server/http.js";
+import { methodNotAllowed } from "../../server/http.js";
 
 const manifest = parseReleaseManifest(releaseManifest);
 

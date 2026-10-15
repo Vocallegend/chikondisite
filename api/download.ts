@@ -13,10 +13,10 @@
  * setup instructions. It never silently falls back to an unrelated or older
  * APK, and it never serves a 404-looking HTML page in place of the file.
  */
-import releaseManifest from "../src/data/release.json";
-import { latestPublished, parseReleaseManifest, resolveDownloadUrl } from "../shared/release";
-import type { ApiRequest, ApiResponse } from "../server/http";
-import { methodNotAllowed } from "../server/http";
+import releaseManifest from "../src/data/release.json" with { type: "json" };
+import { latestPublished, parseReleaseManifest, resolveDownloadUrl } from "../shared/release.js";
+import type { ApiRequest, ApiResponse } from "../server/http.js";
+import { methodNotAllowed } from "../server/http.js";
 
 const manifest = parseReleaseManifest(releaseManifest);
 

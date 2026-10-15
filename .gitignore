@@ -26,3 +26,5 @@ public/releases/*.apk
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+.vercel
