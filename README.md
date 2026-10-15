@@ -268,6 +268,13 @@ a clear 503 with a configured fallback address when they are absent.
 `api/releases/latest.ts` and `api/download.ts` need only
 `RELEASE_DOWNLOAD_URL` (optional) and read the committed manifest.
 
+> **Keep the imports ESM-explicit.** Vercel runs these functions as native ES
+> modules. Every relative import across `api/`, `server/` and `shared/` must
+> carry a `.js` extension (e.g. `../shared/release.js`), and the JSON manifest
+> import needs `with { type: "json" }`. Extensionless imports work under
+> `vercel dev`, so they pass locally, but in a real deployment every function
+> fails with `FUNCTION_INVOCATION_FAILED`.
+
 ---
 
 ## 7. Testing
