@@ -52,7 +52,7 @@ export const faqGroups: { title: string; items: FaqItem[] }[] = [
       {
         question: "How do I know the file I downloaded is the genuine one?",
         answer:
-          "Every release page on this website lists a SHA-256 checksum for the exact file published. After downloading, compute the checksum of your file and compare it. The Installation Guide and the Download page explain how.",
+          "It comes from this website and nowhere else. Download only from the Download page here. If the file reached you any other way — a forwarded link, a messaging group or a third-party site — delete it and download it again from this website.",
       },
     ],
   },
@@ -139,7 +139,7 @@ export const helpArticles: HelpArticle[] = [
     summary: "Get the official Chikondi APK onto your phone.",
     steps: [
       "Open the Download page on this website, on the phone you want to install Chikondi on.",
-      "Tap the download button. The file is around 8 MB, so it takes a moment on a slow connection.",
+      "Tap the download button. The file takes a moment on a slow connection.",
       "When your browser asks whether to keep the file, choose Keep or Download.",
       "The file appears in your Downloads folder, or in the browser's download list.",
     ],
@@ -186,16 +186,16 @@ export const helpArticles: HelpArticle[] = [
   },
   {
     id: "verify-download",
-    title: "Verify your download",
-    summary: "Confirm the file you downloaded is the exact published release.",
+    title: "Make sure the download came from us",
+    summary: "How to be sure the file you installed is the real Chikondi.",
     steps: [
-      "On the Download page, copy the SHA-256 checksum shown for the current release.",
-      "On a computer, run the right command for your system (see below) against the APK file.",
-      "Compare the two long strings. If they match exactly, the file is unchanged from the published release.",
-      "If they do not match, delete the file and download it again from this website. If it still does not match, tell us through the Contact page.",
+      "Download Chikondi only from the Download page on this website.",
+      "If the file reached you some other way — a forwarded link, a messaging group or a third-party site — delete it and download it again here.",
+      "If a link does not lead to this website, do not install the file it offers.",
+      "If you are unsure about a file you already have, contact us through the Contact page before installing it.",
     ],
     note:
-      "Windows: certutil -hashfile chikondi.apk SHA256 · macOS or Linux: shasum -a 256 chikondi.apk",
+      "This website is the only official source for the Chikondi APK. We do not distribute the app through messaging groups or unofficial download sites.",
   },
   {
     id: "account-access",

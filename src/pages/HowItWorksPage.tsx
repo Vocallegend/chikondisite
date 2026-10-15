@@ -17,7 +17,7 @@ const steps: {
     title: "Download and install the app",
     body: "Get the official APK from this website and install it on your Android phone. It takes a moment; there is no store account to create.",
     detail: [
-      "The Download page shows the current version and its checksum",
+      "The Download page shows the current version and its file size",
       "The installation guide covers the one screen Android shows for direct downloads",
       "Requires Android " + site.android.minVersion + " or newer",
     ],

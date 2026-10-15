@@ -10,7 +10,7 @@
     {
       "path": "/download",
       "title": "Download Chikondi for Android — Official APK",
-      "description": "Download the latest official Chikondi Android APK. See the current version, file size, release date and SHA-256 checksum, then install it on your phone.",
+      "description": "Download the latest official Chikondi Android APK. See the current version, file size and release date, then install it on your phone.",
       "priority": "1.0"
     },
     {
@@ -64,7 +64,7 @@
     {
       "path": "/releases",
       "title": "Chikondi Release Notes",
-      "description": "The release history of the Chikondi Android app: version numbers, release dates, file sizes and SHA-256 checksums for every published build.",
+      "description": "The release history of the Chikondi Android app: version numbers, release dates and file sizes for every published build.",
       "priority": "0.7"
     },
     {

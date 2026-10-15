@@ -24,6 +24,7 @@ website/
 │   └── contact.ts           GET/POST /api/contact        -> contact form delivery
 ├── server/                  Server-only helpers (not exposed as routes)
 │   ├── email.ts             Resend delivery over HTTPS (no SDK)
+│   ├── store.ts             Supabase row for the admin console (service role)
 │   ├── http.ts              Request/response helpers
 │   └── rate-limit.ts        Upstash sliding window + in-memory fallback
 ├── shared/                  Code used by both the browser and the functions
@@ -120,10 +121,12 @@ into a working one. **Only `VITE_`-prefixed values reach the browser.**
 | `SITE_URL` | Build | Canonical URLs, sitemap and robots use it. Without it they are root-relative. Set to the real domain. |
 | `RELEASE_DOWNLOAD_URL` | Server | Optional external HTTPS host for the APK. When set it wins over the APK hosted here. Leave unset to serve the committed APK from `public/downloads/`. |
 | `RELEASE_STABLE_URL` | Server | Overrides the `/downloads/chikondi.apk` stable link. Optional. |
-| `RESEND_API_KEY` | Server | Contact form delivery. Without it `/api/contact` returns 503 and the page shows the fallback. |
-| `CONTACT_TO_EMAIL` | Server | Where contact messages are delivered. |
+| `RESEND_API_KEY` | Server | Email delivery for the contact form. One of two delivery paths; without any path `/api/contact` returns 503 and the page shows the fallback. |
+| `CONTACT_TO_EMAIL` | Server | Where contact messages are emailed. |
 | `CONTACT_FROM_EMAIL` | Server | Verified Resend sender. |
 | `CONTACT_FALLBACK_EMAIL` | Server | Address shown when the form is not configured. Leave blank to hide it (never invent one). |
+| `SUPABASE_URL` | Server | Supabase project URL. With the key below, `/api/contact` also stores each message for the Admin Control Centre. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server | Service-role key (bypasses RLS). **Server only — never a `VITE_` variable and never in the browser.** |
 | `UPSTASH_REDIS_REST_URL` | Server | Shared rate limiting across functions. Optional. |
 | `UPSTASH_REDIS_REST_TOKEN` | Server | As above. |
 
@@ -276,12 +279,33 @@ from the deploy. Keep `dist/`, `node_modules/` and secrets out.
 - security headers (`HSTS`, `nosniff`, `X-Frame-Options`, `Referrer-Policy`,
   `Permissions-Policy`, CSP).
 
-The site needs no always-on server and no database.
+The site needs no always-on server. It reads no database; when Supabase delivery
+is configured it writes contact messages to one.
 
 ### 6.3 The functions
 
-`api/contact.ts` is the only function that needs credentials, and it degrades to
-a clear 503 with a configured fallback address when they are absent.
+The site needs no always-on server. It reads no database; when Supabase delivery
+is configured it also writes contact messages to one.
+
+### 6.3 The functions
+
+`api/contact.ts` is the only function that needs credentials. It delivers each
+message to every path that is configured:
+
+- **Supabase** (`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`) — inserts a row
+  into `public.website_contact_messages`, which is exactly what the Admin
+  Control Centre shows under **Website Messages**. This needs the migration
+  `supabase/migrations/20261016090000_website_contact_messages.sql` applied by
+  hand first (see `AGENTS.md`).
+- **Resend** (`RESEND_API_KEY` + addresses) — sends the email.
+
+Delivery succeeds when at least one path accepts the message. With none
+configured it degrades to a clear 503 with the configured fallback address; when
+every configured path fails it returns 502. It never reports a fake success.
+
+> The service-role key bypasses row-level security. Keep it in the serverless
+> environment only: never a `VITE_` variable, never in the browser.
+
 `api/releases/latest.ts` and `api/download.ts` read the committed manifest and
 need no credentials; they use `RELEASE_DOWNLOAD_URL` only when you host the APK
 externally.
@@ -316,17 +340,21 @@ The tests cover:
   override, and method handling;
 - **`/api/contact`** (`tests/api-contact.test.ts`) — configuration status,
   field validation, honeypot and too-fast rejection, the unconfigured 503,
-  successful delivery through a stubbed Resend, a surfaced delivery failure,
-  rate limiting, and method handling.
+  Supabase storage, successful delivery through a stubbed Resend, one path
+  failing while another succeeds, a surfaced total delivery failure, rate
+  limiting, and method handling.
 
 Manual checks worth repeating after a release change:
 
-- `/download` shows the real version, size, date and checksum.
+- `/download` shows the real version, size and date.
 - After `npm run release:publish`, `/downloads/chikondi.apk` redirects to the
-  new file, the button downloads it, and the checksum matches.
+  new file and the button downloads it.
 - With no APK published and no `RELEASE_DOWNLOAD_URL`, the button reads
   "unavailable" rather than linking somewhere wrong.
 - `/api/releases/latest` returns the same values the page shows.
+- With Supabase configured, a test contact message appears in the Admin Control
+  Centre under **Website Messages**; with Resend configured it also arrives by
+  email.
 - Every route renders; the 404 page appears for an unknown URL.
 - The contact form either sends, or shows the configured fallback — it never
   shows a fake success message.
@@ -342,7 +370,8 @@ configured" state until they are filled in. Nothing here is invented.
 | --- | --- |
 | Production domain | Vercel domain + `SITE_URL` |
 | APK download location | `public/downloads/` (via `npm run release:publish`) or `RELEASE_DOWNLOAD_URL` |
-| Contact delivery (Resend key, addresses) | Vercel env vars |
+| Contact delivery — email (Resend key, addresses) | Vercel env vars |
+| Contact delivery — admin console (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) | Vercel env vars + apply `supabase/migrations/20261016090000_website_contact_messages.sql` by hand |
 | Legal entity, registered address, contact email | `src/data/legal.ts` → `LEGAL_PLACEHOLDERS` |
 | Company details / social links | `src/data/site.ts` → `company`, `social` |
 

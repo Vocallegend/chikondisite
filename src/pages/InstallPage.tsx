@@ -8,14 +8,15 @@ import { PageShell } from "@/components/PageShell";
 import { Reveal } from "@/components/Reveal";
 import { Section } from "@/components/Section";
 import { site } from "@/data/site";
-import { bundledLatest } from "@/lib/release";
+import { bundledLatest, formatBytes } from "@/lib/release";
 
 const apkName = bundledLatest?.fileName ?? "chikondi.apk";
+const apkSize = bundledLatest ? formatBytes(bundledLatest.fileSize) : null;
 
 const steps = [
   {
     title: "Download the APK",
-    body: `Open the Download page on this website, on the phone you want to install Chikondi on, and tap the download button. Wait for ${apkName} to finish downloading — it is around 8 MB, so it takes a moment on a slow connection.`,
+    body: `Open the Download page on this website, on the phone you want to install Chikondi on, and tap the download button. Wait for ${apkName} to finish downloading${apkSize ? ` (${apkSize})` : ""} — it takes a moment on a slow connection.`,
   },
   {
     title: "Open the downloaded file",
@@ -58,13 +59,13 @@ const troubleshooting = [
     id: "not-installed",
     question: "\u201cApp not installed\u201d appears at the end",
     answer:
-      "This usually means the download was incomplete, the file is corrupt, or an incompatible version is already installed. Delete the file, download it again, and check the SHA-256 against the checksum on the Download page first. If a very old copy of Chikondi is already on the phone, see the version conflict item below.",
+      "This usually means the download was incomplete, the file is corrupt, or an incompatible version is already installed. Delete the file and download it again from this website. If a very old copy of Chikondi is already on the phone, see the version conflict item below.",
   },
   {
     id: "storage",
     question: "There is not enough space",
     answer:
-      "The APK is around 8 MB, but Android needs more free space than that to unpack and install it — leave roughly 50 MB free. Clear some space and try again.",
+      "Android needs more free space than the file itself to unpack and install it — leave roughly 50 MB free. Clear some space and try again.",
   },
   {
     id: "conflict",
@@ -194,7 +195,7 @@ export default function InstallPage() {
 
       <DownloadCta
         title="Ready to install?"
-        lead="The download page shows the current version, its size and the SHA-256 you can check after downloading."
+        lead="The download page shows the current version and its size before you download."
       />
     </PageShell>
   );

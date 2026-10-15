@@ -1,7 +1,6 @@
-import { Download, FileArchive, History, ShieldCheck } from "lucide-react";
+import { Download, FileArchive, History } from "lucide-react";
 import { ButtonLink } from "@/components/Button";
 import { DownloadCta } from "@/components/DownloadCta";
-import { CopyChecksum } from "@/components/DownloadPanel";
 import { Notice } from "@/components/Notice";
 import { PageHero } from "@/components/PageHero";
 import { PageShell } from "@/components/PageShell";
@@ -34,7 +33,7 @@ export default function ReleasesPage() {
           <div className="max-w-2xl">
             <Notice tone="warning" title="No published release is listed yet">
               The release manifest does not currently contain a published release. When a release
-              is published, its version, date, size and checksum appear here automatically. If you
+              is published, its version, date and size appear here automatically. If you
               expected to see one, contact us through the{" "}
               <a href="/contact" className="font-semibold text-brand-300 underline underline-offset-2">
                 Contact page
@@ -54,7 +53,7 @@ export default function ReleasesPage() {
     <PageShell path="/releases">
       <PageHero
         title="Release notes"
-        lead="Every published Chikondi build, with the exact version number, file size and SHA-256 checksum taken from the APK itself."
+        lead="Every published Chikondi build, with the exact version number, release date and file size taken from the APK itself."
         actions={
           <ButtonLink to="/download" size="lg">
             <Download className="h-5 w-5" aria-hidden="true" />
@@ -92,59 +91,35 @@ export default function ReleasesPage() {
             </div>
           </div>
 
-          <div className="grid gap-px border-b border-white/10 bg-white/10 sm:grid-cols-3">
+          <div className="grid gap-px border-b border-white/10 bg-white/10 sm:grid-cols-2">
             <Detail term="Minimum Android" detail={`Android ${latest.minimumAndroidVersion}`} />
-            <Detail term="Package" detail={site.packageId} mono />
             <Detail term="File name" detail={latest.fileName} mono />
           </div>
 
-          <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-2">
-            <div>
-              <h2 className="text-base font-semibold text-white">What changed in {latest.versionName}</h2>
-              {latest.releaseNotes.length > 0 ? (
-                <ul className="mt-4 space-y-2.5">
-                  {latest.releaseNotes.map((note) => (
-                    <li key={note} className="flex gap-3 text-sm leading-relaxed text-ink-300">
-                      <span
-                        aria-hidden="true"
-                        className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400"
-                      />
-                      <span>{note}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-4 text-sm leading-relaxed text-ink-500">
-                  Release notes are not available for this version.
-                </p>
-              )}
-              {latest.builtAt && (
-                <p className="mt-4 text-xs text-ink-600">
-                  Built {formatDate(latest.builtAt)}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="flex items-center gap-2 text-base font-semibold text-white">
-                  <ShieldCheck className="h-4 w-4 text-brand-300" aria-hidden="true" />
-                  SHA-256
-                </h2>
-                <CopyChecksum value={latest.sha256} label="Copy SHA-256" />
-              </div>
-              <p className="mt-3 font-mono text-xs leading-relaxed break-all text-ink-400">
-                {latest.sha256}
+          <div className="p-6 sm:p-8">
+            <h2 className="text-base font-semibold text-white">What changed in {latest.versionName}</h2>
+            {latest.releaseNotes.length > 0 ? (
+              <ul className="mt-4 space-y-2.5">
+                {latest.releaseNotes.map((note) => (
+                  <li key={note} className="flex gap-3 text-sm leading-relaxed text-ink-300">
+                    <span
+                      aria-hidden="true"
+                      className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400"
+                    />
+                    <span>{note}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-4 text-sm leading-relaxed text-ink-500">
+                Release notes are not available for this version.
               </p>
-              <p className="mt-3 text-xs leading-relaxed text-ink-500">
-                Compare this with the checksum of the file you downloaded. If they differ, do not
-                install it. The{" "}
-                <a href="/download" className="text-brand-300 underline-offset-2 hover:underline">
-                  download page
-                </a>{" "}
-                explains how.
+            )}
+            {latest.builtAt && (
+              <p className="mt-4 text-xs text-ink-600">
+                Built {formatDate(latest.builtAt)}
               </p>
-            </div>
+            )}
           </div>
         </article>
       </Section>
@@ -189,7 +164,6 @@ export default function ReleasesPage() {
                     ))}
                   </ul>
                 )}
-                <p className="mt-4 font-mono text-xs break-all text-ink-600">{release.sha256}</p>
               </li>
             ))}
           </ul>
@@ -211,7 +185,7 @@ export default function ReleasesPage() {
             <code className="rounded bg-black/40 px-1.5 py-0.5 font-mono text-xs">
               /api/releases/latest
             </code>{" "}
-            as JSON, with the version, size, checksum and download availability. It is read-only and
+            as JSON, with the version, date, size and download availability. It is read-only and
             contains no credentials.
           </p>
           <ButtonLink to="/api/releases/latest" variant="secondary" external className="shrink-0">

@@ -230,7 +230,7 @@ export default function HomePage() {
       <Section
         eyebrow="Get the app"
         title="Download the official Chikondi APK"
-        lead="Installed straight from this website. Check the version and checksum below before you install."
+        lead="Installed straight from this website. Check the version and file size below before you install."
       >
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
           <DownloadPanel state={releaseState} />

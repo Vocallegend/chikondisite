@@ -72,6 +72,8 @@ beforeEach(() => {
   delete process.env.CONTACT_TO_EMAIL;
   delete process.env.CONTACT_FROM_EMAIL;
   delete process.env.CONTACT_FALLBACK_EMAIL;
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
 });
 
 afterEach(() => {
@@ -79,6 +81,8 @@ afterEach(() => {
   delete process.env.CONTACT_TO_EMAIL;
   delete process.env.CONTACT_FROM_EMAIL;
   delete process.env.CONTACT_FALLBACK_EMAIL;
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
   vi.unstubAllGlobals();
 });
 
@@ -97,6 +101,15 @@ describe("GET /api/contact", () => {
     await handler(request("GET"), rec.res);
 
     expect(rec.body).toEqual({ configured: false, fallbackEmail: "hello@example.com" });
+  });
+
+  it("reports configured when Supabase delivery is set up", async () => {
+    process.env.SUPABASE_URL = "https://project.supabase.co";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "service_role_key";
+    const rec = recorder();
+    await handler(request("GET"), rec.res);
+
+    expect(rec.body).toEqual({ configured: true, fallbackEmail: null });
   });
 });
 
@@ -127,14 +140,34 @@ describe("POST /api/contact", () => {
     expect((rec.body as Record<string, unknown>).error).toBe("rejected");
   });
 
-  it("returns an honest 503 when the email provider is not configured", async () => {
+  it("returns an honest 503 when no delivery path is configured", async () => {
     const rec = recorder();
     await handler(request("POST", validBody()), rec.res);
 
     expect(rec.status).toBe(503);
     const body = rec.body as Record<string, unknown>;
     expect(body.error).toBe("contact_not_configured");
+    expect(String(body.message)).toContain("SUPABASE_URL");
     expect(String(body.message)).toContain("RESEND_API_KEY");
+  });
+
+  it("stores the message in Supabase when Supabase is configured", async () => {
+    process.env.SUPABASE_URL = "https://project.supabase.co";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "service_role_key";
+
+    const fetchMock = vi.fn(async () => new Response("", { status: 201 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const rec = recorder();
+    await handler(request("POST", validBody()), rec.res);
+
+    expect(rec.status).toBe(200);
+    expect(rec.body).toEqual({ ok: true });
+    const call = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(call[0]).toBe("https://project.supabase.co/rest/v1/website_contact_messages");
+    const headers = call[1].headers as Record<string, string>;
+    expect(headers.apikey).toBe("service_role_key");
+    expect(String(call[1].body)).toContain("Cannot install the app");
   });
 
   it("delivers through Resend and returns ok when fully configured", async () => {
@@ -155,6 +188,46 @@ describe("POST /api/contact", () => {
     expect(call[0]).toBe("https://api.resend.com/emails");
     const auth = (call[1].headers as Record<string, string>).Authorization;
     expect(auth).toBe("Bearer re_test_key");
+  });
+
+  it("delivers to both configured paths at once", async () => {
+    process.env.SUPABASE_URL = "https://project.supabase.co";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "service_role_key";
+    process.env.RESEND_API_KEY = "re_test_key";
+    process.env.CONTACT_TO_EMAIL = "inbox@example.com";
+    process.env.CONTACT_FROM_EMAIL = "site@example.com";
+
+    const fetchMock = vi.fn(async () => new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const rec = recorder();
+    await handler(request("POST", validBody()), rec.res);
+
+    expect(rec.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("succeeds when one configured path fails but another accepts", async () => {
+    process.env.SUPABASE_URL = "https://project.supabase.co";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "service_role_key";
+    process.env.RESEND_API_KEY = "re_test_key";
+    process.env.CONTACT_TO_EMAIL = "inbox@example.com";
+    process.env.CONTACT_FROM_EMAIL = "site@example.com";
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string | URL | Request) =>
+        String(url).includes("supabase.co")
+          ? new Response("boom", { status: 500 })
+          : new Response("{}", { status: 200 }),
+      ),
+    );
+
+    const rec = recorder();
+    await handler(request("POST", validBody()), rec.res);
+
+    expect(rec.status).toBe(200);
+    expect(rec.body).toEqual({ ok: true });
   });
 
   it("reports a delivery failure rather than a fake success", async () => {
