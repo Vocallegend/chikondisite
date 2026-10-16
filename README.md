@@ -78,9 +78,9 @@ npm install
 npm run dev          # http://localhost:5173
 ```
 
-The React app runs entirely in the browser here. The `/api/*` and
-`/downloads/*` endpoints are Vercel Functions; to exercise them locally use the
-Vercel CLI:
+The React app runs entirely in the browser here. The `/api/*` endpoints (and the
+`/downloads/chikondi.apk` / `/downloads/chikondi-latest.apk` redirects that lead
+to one) are Vercel Functions; to exercise them locally use the Vercel CLI:
 
 ```bash
 npm i -g vercel
@@ -270,9 +270,12 @@ from the deploy. Keep `dist/`, `node_modules/` and secrets out.
 
 - the SPA rewrite (with `/api`, `/downloads`, `/assets`, `/brand`, `/app` and
   file requests excluded),
-- `/downloads/chikondi.apk` and `/downloads/chikondi-latest.apk` → the download
-  function (302 to the newest APK); versioned `/downloads/chikondi-<v>.apk`
-  files are served as static files with `Content-Disposition: attachment`,
+- `/downloads/chikondi.apk` and `/downloads/chikondi-latest.apk` → a temporary
+  redirect to the download function (which 302s to the newest APK). This mapping
+  is a `redirect`, not a `rewrite`: Vercel did not apply the rewrite to those
+  `.apk` paths, so the published download button 404'd. Redirects run before the
+  filesystem and do work. Versioned `/downloads/chikondi-<v>.apk` files are
+  served as static files with `Content-Disposition: attachment`,
 - long-lived immutable caching for hashed assets,
 - no-store for the download endpoint and APK files,
 - `s-maxage` caching for `/api/releases/latest`,
