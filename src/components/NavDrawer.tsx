@@ -102,22 +102,24 @@ export function NavDrawer({ open, onClose }: { open: boolean; onClose: () => voi
           >
             <div className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-brand-600/12 to-transparent" />
 
-            <div className="relative flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
+            <div className="site-drawer-brandrow relative flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
               <span className="flex items-center gap-2.5">
                 <img
                   src="/brand/chikondi-logo-256.png"
                   alt=""
                   width={28}
                   height={28}
-                  className="h-7 w-7 rounded-lg"
+                  className="site-drawer-logo h-7 w-7 rounded-lg"
                 />
-                <span className="text-base font-bold tracking-tight text-white">{site.name}</span>
+                <span className="site-drawer-title text-base font-bold tracking-tight text-white">
+                  {site.name}
+                </span>
               </span>
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close menu"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-ink-100 transition hover:rotate-90 hover:border-white/30 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400"
+                className="site-drawer-close inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-ink-100 transition hover:rotate-90 hover:border-white/30 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
@@ -142,7 +144,7 @@ export function NavDrawer({ open, onClose }: { open: boolean; onClose: () => voi
                       onClick={onClose}
                       className={({ isActive }) =>
                         [
-                          "group flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-base font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400",
+                          "site-drawer-link group flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-base font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400",
                           isActive
                             ? "bg-white/10 text-white"
                             : "text-ink-200 hover:bg-white/5 hover:text-white",
@@ -167,7 +169,12 @@ export function NavDrawer({ open, onClose }: { open: boolean; onClose: () => voi
               transition={{ delay: reduced ? 0 : 0.1 + primaryNav.length * 0.045, duration: 0.4, ease: EASE }}
             >
               <div className="flex flex-col gap-2">
-                <ButtonLink to="/download" size="lg" className="w-full" onClick={onClose}>
+                <ButtonLink
+                  to="/download"
+                  size="lg"
+                  className="site-drawer-cta w-full"
+                  onClick={onClose}
+                >
                   <Download className="h-4 w-4" aria-hidden="true" />
                   Download Chikondi
                 </ButtonLink>
@@ -175,13 +182,13 @@ export function NavDrawer({ open, onClose }: { open: boolean; onClose: () => voi
                   to={STABLE_DOWNLOAD_PATH}
                   variant="secondary"
                   size="lg"
-                  className="w-full"
+                  className="site-drawer-cta w-full"
                   external
                 >
                   Download the APK directly
                 </ButtonLink>
               </div>
-              <p className="mt-4 flex items-center justify-center gap-2 text-xs text-ink-500">
+              <p className="site-drawer-note mt-4 flex items-center justify-center gap-2 text-xs text-ink-500">
                 <ShieldCheck className="h-3.5 w-3.5 text-brand-300" aria-hidden="true" />
                 Adults only · Android {site.android.minVersion}+
               </p>

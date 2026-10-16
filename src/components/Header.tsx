@@ -80,7 +80,7 @@ export function Header() {
         <div className="site-header-inner container-page flex h-16 items-center justify-between gap-4 sm:h-18">
           <Link
             to="/"
-            className="flex items-center gap-2.5 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-400"
+            className="site-header-brand flex items-center gap-2.5 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-400"
             aria-label={`${site.name} home`}
           >
             <img
@@ -88,9 +88,11 @@ export function Header() {
               alt=""
               width={32}
               height={32}
-              className="h-8 w-8 rounded-lg"
+              className="site-header-logo h-8 w-8 rounded-lg"
             />
-            <span className="text-lg font-bold tracking-tight text-white">{site.name}</span>
+            <span className="site-header-name text-lg font-bold tracking-tight text-white">
+              {site.name}
+            </span>
           </Link>
 
           <nav
@@ -117,7 +119,7 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <ButtonLink to="/download" className="hidden sm:inline-flex">
+            <ButtonLink to="/download" className="site-header-cta hidden sm:inline-flex">
               <Download className="h-4 w-4" aria-hidden="true" />
               Download
             </ButtonLink>

@@ -231,37 +231,131 @@
  *
  * Everything else is a desktop layout shrunk to fit, which is the point — but
  * shrinking mobile chrome with it leaves a 72px bar rendering at 22px and 16px
- * menu links at 5px. So on a narrow device both are un-shrunk instead: `zoom`
- * multiplies the shrink back out, which turns every length inside them into a
- * real, physical pixel again (a 72px header is 72px on the glass, a 16px link
- * reads as 16px) at any device width, because --canvas-scale carries that
- * device's own factor rather than a hard-coded one. `zoom` is used rather than
- * a transform because it scales layout as well as paint, so the bar still
- * pushes the page down by exactly its rendered height.
+ * menu links at 5px. So on a narrow device both are un-shrunk instead.
+ *
+ * The un-shrinking is `zoom`: it multiplies the shrink back out, so every
+ * length inside the header and the drawer is a real pixel on the glass, and it
+ * scales layout as well as paint, so the bar pushes the page down by exactly
+ * the height it renders at. --canvas-scale is this device's own factor, set by
+ * fit.js, so the same declaration lands at the right size on any screen rather
+ * than being tuned for one phone.
+ *
+ * `zoom` alone only makes them *normal* size, which is what it did before. The
+ * sizes below are what makes them big: with zoom doing the unit conversion,
+ * `height: 7.5rem` below reads as 120px of actual glass, a 3.5rem logo as 56px,
+ * and a 1.375rem menu link as 22px.
+ *
+ * One deliberate subtraction: the header's own Download button is dropped
+ * here. At this size the brand and the button together want more width than a
+ * phone has, and something has to give. The button is the right thing to lose —
+ * a brand-and-menu bar is the ordinary shape of a phone header, and the drawer
+ * that replaces it carries two download calls to action anyway.
  */
 .narrow-device .site-header-inner {
   zoom: calc(1 / var(--canvas-scale, 1));
-  padding-inline: 1.25rem;
+  height: 7.5rem;
+  padding-inline: 1.5rem;
+}
+
+.narrow-device .site-header-brand {
+  gap: 0.875rem;
+}
+
+.narrow-device .site-header-logo {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.narrow-device .site-header-name {
+  font-size: 1.875rem;
+}
+
+.narrow-device .site-header-cta {
+  display: none;
+}
+
+.narrow-device .site-nav-toggle {
+  width: 3.75rem;
+  height: 3.75rem;
+}
+
+.narrow-device .site-nav-toggle svg {
+  width: 1.875rem;
+  height: 1.875rem;
 }
 
 /* The header grew, so the page below it has to clear the new height. */
 .narrow-device #main {
-  padding-top: calc(4.5rem / var(--canvas-scale, 1));
+  padding-top: calc(7.5rem / var(--canvas-scale, 1));
 }
 
 .narrow-device .site-progress {
-  height: calc(1.5px / var(--canvas-scale, 1));
+  height: calc(2px / var(--canvas-scale, 1));
 }
 
 .narrow-device .site-drawer-panel {
   zoom: calc(1 / var(--canvas-scale, 1));
+  max-width: 92%;
 }
 
 .narrow-device .site-drawer-backdrop {
   backdrop-filter: blur(calc(1.5rem / var(--canvas-scale, 1)));
 }
 
+.narrow-device .site-drawer-brandrow {
+  padding: 1.25rem 1.25rem 1.125rem;
+}
+
+.narrow-device .site-drawer-logo {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.narrow-device .site-drawer-title {
+  font-size: 1.375rem;
+}
+
+.narrow-device .site-drawer-close {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.narrow-device .site-drawer-close svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.narrow-device .site-drawer-link {
+  font-size: 1.375rem;
+  padding-block: 1.125rem;
+  border-radius: 1rem;
+}
+
+.narrow-device .site-drawer-link svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.narrow-device .site-drawer-cta {
+  font-size: 1.25rem;
+  padding-block: 1.125rem;
+}
+
+.narrow-device .site-drawer-cta svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.narrow-device .site-drawer-note {
+  font-size: 0.9375rem;
+}
+
+.narrow-device .site-drawer-note svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
 /* The header is taller here too, so the anchor offset has to follow it. */
 .narrow-device .scroll-under-header {
-  scroll-margin-top: calc(7rem / var(--canvas-scale, 1));
+  scroll-margin-top: calc(10rem / var(--canvas-scale, 1));
 }
