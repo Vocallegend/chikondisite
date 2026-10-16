@@ -3,9 +3,11 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "redirects": [
+    { "source": "/downloads/chikondi.apk", "destination": "/api/download", "permanent": false },
+    { "source": "/downloads/chikondi-latest.apk", "destination": "/api/download", "permanent": false }
+  ],
   "rewrites": [
-    { "source": "/downloads/chikondi.apk", "destination": "/api/download" },
-    { "source": "/downloads/chikondi-latest.apk", "destination": "/api/download" },
     {
       "source": "/:path((?!assets/|api/|downloads/|brand/|app/|releases/|robots.txt|sitemap.xml|.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"
