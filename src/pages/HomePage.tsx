@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { ArrowRight, Download, ShieldCheck, Smartphone, Sparkles, Users } from "lucide-react";
+import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import type { MotionProps } from "motion/react";
 import { ButtonLink } from "@/components/Button";
 import { DownloadPanel } from "@/components/DownloadPanel";
 import { FeatureIcon } from "@/components/FeatureIcon";
@@ -9,29 +11,53 @@ import { Reveal } from "@/components/Reveal";
 import { Section } from "@/components/Section";
 import { PageShell } from "@/components/PageShell";
 import { DownloadCta } from "@/components/DownloadCta";
+import { Tilt } from "@/components/Tilt";
 import { features } from "@/data/features";
 import { site } from "@/data/site";
 import { bundledLatest, formatBytes, formatDate, useLatestRelease } from "@/lib/release";
 
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+/** Hero entrance: a rise and a fade, offset by `delay` so the column builds. */
+function rise(delay: number, reduced: boolean | null): MotionProps {
+  if (reduced) return {};
+  return {
+    initial: { opacity: 0, y: 22 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.7, ease: EASE, delay },
+  };
+}
+
 export default function HomePage() {
   const releaseState = useLatestRelease();
+  const reduced = useReducedMotion();
+
+  // Everything that moves on the way out of the hero: the glows drift down
+  // against the scroll while the artwork lifts and tips back, so the section
+  // has depth rather than just scrolling away flat.
+  const { scrollY } = useScroll();
+  const glowY = useTransform(scrollY, [0, 850], [0, 160]);
+  const phoneY = useTransform(scrollY, [0, 850], [0, -70]);
+  const phoneTilt = useTransform(scrollY, [0, 850], [0, -12]);
 
   return (
     <PageShell path="/">
       {/* ---------------------------------------------------------------- Hero */}
       <section className="relative overflow-hidden">
-        <div
+        <motion.div
           aria-hidden="true"
+          style={reduced ? undefined : { y: glowY }}
           className="pointer-events-none absolute -top-40 -right-24 h-[32rem] w-[32rem] rounded-full bg-brand-600/25 blur-3xl"
         />
-        <div
+        <motion.div
           aria-hidden="true"
+          style={reduced ? undefined : { y: glowY }}
           className="pointer-events-none absolute top-40 -left-40 h-[28rem] w-[28rem] rounded-full bg-gold-500/10 blur-3xl"
         />
 
         <div className="container-page relative grid items-center gap-14 py-16 sm:py-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-10 lg:py-28">
           <div>
-            <div className="flex flex-wrap items-center gap-2">
+            <motion.div {...rise(0, reduced)} className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-ink-200">
                 <Smartphone className="h-3.5 w-3.5 text-brand-300" aria-hidden="true" />
                 Android · direct download
@@ -39,22 +65,31 @@ export default function HomePage() {
               <span className="inline-flex items-center gap-1.5 rounded-full border border-gold-500/30 bg-gold-500/10 px-3 py-1.5 text-xs font-semibold text-gold-500">
                 18+
               </span>
-            </div>
+            </motion.div>
 
-            <h1 className="mt-6 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+            <motion.h1
+              {...rise(0.08, reduced)}
+              className="mt-6 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl"
+            >
               Real connections start with{" "}
               <span className="bg-gradient-to-br from-brand-300 via-brand-400 to-brand-600 bg-clip-text text-transparent">
                 Chikondi
               </span>
               .
-            </h1>
+            </motion.h1>
 
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-300">
+            <motion.p
+              {...rise(0.16, reduced)}
+              className="mt-6 max-w-xl text-lg leading-relaxed text-ink-300"
+            >
               {site.description} Meet people nearby, match with the ones who feel right, and take
               the conversation from there.
-            </p>
+            </motion.p>
 
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <motion.div
+              {...rise(0.24, reduced)}
+              className="mt-8 flex flex-wrap items-center gap-3"
+            >
               <ButtonLink to="/download" size="lg">
                 <Download className="h-5 w-5" aria-hidden="true" />
                 Download for Android
@@ -63,9 +98,12 @@ export default function HomePage() {
                 See how it works
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </ButtonLink>
-            </div>
+            </motion.div>
 
-            <dl className="mt-10 grid max-w-lg grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+            <motion.dl
+              {...rise(0.32, reduced)}
+              className="mt-10 grid max-w-lg grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3"
+            >
               <Fact
                 icon={<Sparkles className="h-4 w-4" aria-hidden="true" />}
                 term="Current version"
@@ -81,10 +119,10 @@ export default function HomePage() {
                 term="Works on"
                 detail={`Android ${bundledLatest?.minimumAndroidVersion ?? site.android.minVersion}+`}
               />
-            </dl>
+            </motion.dl>
 
             {bundledLatest && (
-              <p className="mt-6 text-xs text-ink-500">
+              <motion.p {...rise(0.4, reduced)} className="mt-6 text-xs text-ink-500">
                 Released {formatDate(bundledLatest.releaseDate)} ·{" "}
                 <a
                   href="/releases"
@@ -92,23 +130,41 @@ export default function HomePage() {
                 >
                   release notes
                 </a>
-              </p>
+              </motion.p>
             )}
           </div>
 
-          <div className="relative flex justify-center lg:justify-end">
-            <div className="relative flex items-end gap-4">
-              <PhoneMockup
-                src="/app/connect-safely.jpg"
-                alt="Chikondi onboarding artwork about connecting safely"
-                className="hidden translate-y-8 sm:flex"
-              />
-              <PhoneMockup
-                src="/app/welcome.jpg"
-                alt="Chikondi welcome artwork"
-                priority
-              />
-            </div>
+          <div
+            className="relative flex justify-center lg:justify-end"
+            style={{ perspective: "1400px" }}
+          >
+            <motion.div
+              className="relative flex items-end gap-4"
+              style={
+                reduced
+                  ? undefined
+                  : { y: phoneY, rotateX: phoneTilt, transformOrigin: "50% 100%" }
+              }
+            >
+              <div className="hidden animate-float sm:block [animation-delay:1.6s]">
+                <Tilt max={6} hoverScale={1.02} glare={false}>
+                  <PhoneMockup
+                    src="/app/connect-safely.jpg"
+                    alt="Chikondi onboarding artwork about connecting safely"
+                    className="translate-y-8"
+                  />
+                </Tilt>
+              </div>
+              <div className="animate-float">
+                <Tilt max={7} hoverScale={1.03} glare={false}>
+                  <PhoneMockup
+                    src="/app/welcome.jpg"
+                    alt="Chikondi welcome artwork"
+                    priority
+                  />
+                </Tilt>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -122,14 +178,16 @@ export default function HomePage() {
       >
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.slice(0, 6).map((feature, index) => (
-            <Reveal key={feature.title} delay={index * 0.04}>
-              <article className="h-full rounded-2xl border border-white/10 bg-ink-950/60 p-6 transition-colors hover:border-white/20">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-600/15 text-brand-300">
-                  <FeatureIcon name={feature.icon} className="h-5 w-5" />
-                </div>
-                <h3 className="mt-5 text-lg font-semibold text-white">{feature.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-300">{feature.summary}</p>
-              </article>
+            <Reveal key={feature.title} delay={index * 0.06} distance={20}>
+              <Tilt className="h-full" max={9} hoverScale={1.025}>
+                <article className="h-full rounded-2xl border border-white/10 bg-ink-950/60 p-6 transition-colors hover:border-white/25">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-600/15 text-brand-300">
+                    <FeatureIcon name={feature.icon} className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-5 text-lg font-semibold text-white">{feature.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-300">{feature.summary}</p>
+                </article>
+              </Tilt>
             </Reveal>
           ))}
         </div>
@@ -166,16 +224,24 @@ export default function HomePage() {
               body: "Discover people nearby, like the ones you like, and message when you match.",
             },
           ].map((step, index) => (
-            <li
+            <motion.li
               key={step.title}
-              className="rounded-2xl border border-white/10 bg-ink-900/40 p-6"
+              initial={
+                reduced
+                  ? { opacity: 1 }
+                  : { opacity: 0, y: 26, rotateX: 10, transformPerspective: 800 }
+              }
+              whileInView={reduced ? { opacity: 1 } : { opacity: 1, y: 0, rotateX: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.6, ease: EASE, delay: index * 0.07 }}
+              className="rounded-2xl border border-white/10 bg-ink-900/40 p-6 transition-colors hover:border-white/20 hover:bg-ink-900/70"
             >
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">
                 {index + 1}
               </span>
               <h3 className="mt-4 text-base font-semibold text-white">{step.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-ink-300">{step.body}</p>
-            </li>
+            </motion.li>
           ))}
         </ol>
         <div className="mt-10">
@@ -216,11 +282,19 @@ export default function HomePage() {
               { body: "Every report is reviewed by a person, with an audit trail.", title: "Human moderation" },
               { title: "Adults only", body: "18+ is checked against your date of birth, not a tick box." },
               { body: "Other members cannot see your email, phone or exact location.", title: "Private by design" },
-            ].map((item) => (
-              <div key={item.title} className="rounded-2xl border border-white/10 bg-ink-950/60 p-5">
-                <h3 className="text-sm font-semibold text-white">{item.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-400">{item.body}</p>
-              </div>
+            ].map((item, index) => (
+              <Reveal
+                key={item.title}
+                className="h-full"
+                delay={index * 0.07}
+                variant={index % 2 === 0 ? "left" : "right"}
+                distance={22}
+              >
+                <div className="h-full rounded-2xl border border-white/10 bg-ink-950/60 p-5 transition-colors hover:border-white/20">
+                  <h3 className="text-sm font-semibold text-white">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-400">{item.body}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>

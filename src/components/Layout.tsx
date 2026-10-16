@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
+import { motion, useReducedMotion } from "motion/react";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 
@@ -27,6 +28,9 @@ function ScrollManager() {
 }
 
 export function Layout({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  const reduced = useReducedMotion();
+
   return (
     <div className="flex min-h-dvh flex-col">
       <a
@@ -38,7 +42,15 @@ export function Layout({ children }: { children: ReactNode }) {
       <ScrollManager />
       <Header />
       <main id="main" className="flex-1 pt-16 sm:pt-18">
-        {children}
+        {/* Keyed on the path so every navigation plays the arrival once. */}
+        <motion.div
+          key={pathname}
+          initial={reduced ? { opacity: 0 } : { opacity: 0, y: 12 }}
+          animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {children}
+        </motion.div>
       </main>
       <Footer />
     </div>

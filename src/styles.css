@@ -55,6 +55,8 @@
 
   --animate-glow: glow 9s ease-in-out infinite;
   --animate-rise: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-float-slow: float 9.5s ease-in-out infinite;
 }
 
 @keyframes glow {
@@ -77,6 +79,19 @@
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0);
+  }
+}
+
+/* A slow, weightless bob for the hero artwork. Kept small: this sits behind a
+   pointer-driven 3D tilt, so it only needs to stop the composition feeling
+   frozen. */
+@keyframes float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
   }
 }
 
@@ -178,4 +193,29 @@
 @utility break-checksum {
   word-break: break-all;
   overflow-wrap: anywhere;
+}
+
+/*
+ * A narrow screen — see public/fit.js.
+ *
+ * The layout viewport is pinned at 1280px so the desktop layout is used
+ * everywhere, which means no media query can tell a phone from a desktop:
+ * both report 1280. fit.js marks the document instead, and the rules below
+ * swap the desktop navigation for the drawer toggle.
+ *
+ * They are deliberately unlayered. Unlayered declarations outrank everything
+ * inside Tailwind's layers, which is what lets one class beat `lg:flex` and
+ * `lg:hidden` without reaching for !important.
+ *
+ * The toggle keeps its own `lg:hidden` so it still appears in a desktop window
+ * narrowed past the breakpoint, where the desktop nav is hidden anyway; the
+ * rule here only re-shows it on a phone, where the layout viewport is 1280 and
+ * `lg:hidden` would otherwise bury it.
+ */
+.narrow-device .site-nav-desktop {
+  display: none;
+}
+
+.narrow-device .site-nav-toggle {
+  display: inline-flex;
 }
