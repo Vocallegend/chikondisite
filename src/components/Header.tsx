@@ -77,7 +77,7 @@ export function Header() {
             : "border-b border-transparent",
         ].join(" ")}
       >
-        <div className="container-page flex h-16 items-center justify-between gap-4 sm:h-18">
+        <div className="site-header-inner container-page flex h-16 items-center justify-between gap-4 sm:h-18">
           <Link
             to="/"
             className="flex items-center gap-2.5 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-400"
@@ -144,7 +144,7 @@ export function Header() {
         {/* Reading progress: empty at the top of the page, full at the bottom. */}
         <motion.div
           aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-gradient-to-r from-brand-400 via-brand-500 to-gold-500"
+          className="site-progress absolute inset-x-0 bottom-0 h-0.5 origin-left bg-gradient-to-r from-brand-400 via-brand-500 to-gold-500"
           style={{ scaleX: progress }}
         />
       </header>

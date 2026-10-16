@@ -84,7 +84,7 @@ export function NavDrawer({ open, onClose }: { open: boolean; onClose: () => voi
               are the accessible ways out; this is the convenient one. */}
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-ink-950/60 backdrop-blur-xl"
+            className="site-drawer-backdrop absolute inset-0 bg-ink-950/60 backdrop-blur-xl"
             onClick={onClose}
           />
 
@@ -94,7 +94,7 @@ export function NavDrawer({ open, onClose }: { open: boolean; onClose: () => voi
             aria-modal="true"
             aria-label="Site menu"
             tabIndex={-1}
-            className="absolute inset-y-0 right-0 flex w-[26rem] max-w-[88%] flex-col overflow-y-auto border-l border-white/12 bg-ink-950/95 shadow-[0_0_90px_rgba(0,0,0,0.7)] outline-none backdrop-blur-2xl"
+            className="site-drawer-panel absolute inset-y-0 right-0 flex w-[26rem] max-w-[88%] flex-col overflow-y-auto border-l border-white/12 bg-ink-950/95 shadow-[0_0_90px_rgba(0,0,0,0.7)] outline-none backdrop-blur-2xl"
             initial={reduced ? { opacity: 0 } : { x: "104%" }}
             animate={reduced ? { opacity: 1 } : { x: 0 }}
             exit={reduced ? { opacity: 0 } : { x: "104%" }}

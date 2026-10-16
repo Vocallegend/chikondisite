@@ -18,6 +18,10 @@
  * screen is actually small. That is what swaps the desktop navigation for the
  * drawer toggle in styles.css.
  *
+ * It publishes that same shrink factor as `--canvas-scale` too, so CSS can
+ * undo it where it should: the header and the drawer are mobile chrome, and
+ * they are sized for the hand rather than for the canvas (see styles.css).
+ *
  * No inline script: the site's CSP is `script-src 'self'`, so this is served
  * as a normal same-origin file and included render-blocking from <head> so the
  * first paint is already fitted and already marked.
@@ -76,8 +80,27 @@
     }
   }
 
+  /**
+   * How much the page is shrunk relative to the 1280px canvas.
+   *
+   * 1 on a screen wide enough to hold the canvas — including the moment
+   * before a browser that refused to shrink has been corrected, and any
+   * desktop window. CSS divides lengths by this to render them at true size.
+   */
+  function canvasScale() {
+    if (vv && vv.scale < 0.999) return vv.scale;
+    var width = deviceWidth();
+    if (width > 0 && width < CANVAS && window.innerWidth >= CANVAS - 1) return width / CANVAS;
+    return 1;
+  }
+
+  function publishScale() {
+    root.style.setProperty("--canvas-scale", String(Math.round(canvasScale() * 100000) / 100000));
+  }
+
   function update() {
     fit();
+    publishScale();
     syncNarrow();
   }
 

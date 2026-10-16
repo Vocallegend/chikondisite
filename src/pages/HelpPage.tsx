@@ -36,7 +36,7 @@ export default function HelpPage() {
 
         <div className="max-w-3xl space-y-14">
           {helpArticles.map((article) => (
-            <section key={article.id} id={article.id} className="scroll-mt-28">
+            <section key={article.id} id={article.id} className="scroll-under-header">
               <h2 className="text-2xl font-bold text-white">{article.title}</h2>
               <p className="mt-2 text-base leading-relaxed text-ink-400">{article.summary}</p>
               <ol className="mt-5 space-y-3">

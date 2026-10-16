@@ -74,7 +74,7 @@ export function LegalDocument({ document }: { document: LegalDocumentType }) {
           </div>
         )}
 
-        <section id="in-short" className="mt-10 scroll-mt-28">
+        <section id="in-short" className="mt-10 scroll-under-header">
           <div className="rounded-2xl border border-white/10 bg-ink-900/50 p-5 sm:p-6">
             <h2 className="flex items-center gap-2 text-base font-semibold text-white">
               <ListChecks className="h-5 w-5 text-brand-300" aria-hidden="true" />
@@ -93,7 +93,7 @@ export function LegalDocument({ document }: { document: LegalDocumentType }) {
 
         <div className="mt-12 space-y-10">
           {document.sections.map((section) => (
-            <section key={section.heading} id={slug(section.heading)} className="scroll-mt-28">
+            <section key={section.heading} id={slug(section.heading)} className="scroll-under-header">
               <h2 className="text-xl font-semibold text-white">{section.heading}</h2>
               {section.body && (
                 <p className="mt-3 text-base leading-relaxed text-ink-300">{section.body}</p>

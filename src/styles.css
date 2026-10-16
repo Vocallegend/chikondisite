@@ -195,6 +195,11 @@
   overflow-wrap: anywhere;
 }
 
+/* In-page anchors must not land under the fixed header. */
+@utility scroll-under-header {
+  scroll-margin-top: 7rem;
+}
+
 /*
  * A narrow screen — see public/fit.js.
  *
@@ -218,4 +223,45 @@
 
 .narrow-device .site-nav-toggle {
   display: inline-flex;
+}
+
+/*
+ * The header and the drawer are the only two parts of the site meant for a
+ * hand rather than for the canvas.
+ *
+ * Everything else is a desktop layout shrunk to fit, which is the point — but
+ * shrinking mobile chrome with it leaves a 72px bar rendering at 22px and 16px
+ * menu links at 5px. So on a narrow device both are un-shrunk instead: `zoom`
+ * multiplies the shrink back out, which turns every length inside them into a
+ * real, physical pixel again (a 72px header is 72px on the glass, a 16px link
+ * reads as 16px) at any device width, because --canvas-scale carries that
+ * device's own factor rather than a hard-coded one. `zoom` is used rather than
+ * a transform because it scales layout as well as paint, so the bar still
+ * pushes the page down by exactly its rendered height.
+ */
+.narrow-device .site-header-inner {
+  zoom: calc(1 / var(--canvas-scale, 1));
+  padding-inline: 1.25rem;
+}
+
+/* The header grew, so the page below it has to clear the new height. */
+.narrow-device #main {
+  padding-top: calc(4.5rem / var(--canvas-scale, 1));
+}
+
+.narrow-device .site-progress {
+  height: calc(1.5px / var(--canvas-scale, 1));
+}
+
+.narrow-device .site-drawer-panel {
+  zoom: calc(1 / var(--canvas-scale, 1));
+}
+
+.narrow-device .site-drawer-backdrop {
+  backdrop-filter: blur(calc(1.5rem / var(--canvas-scale, 1)));
+}
+
+/* The header is taller here too, so the anchor offset has to follow it. */
+.narrow-device .scroll-under-header {
+  scroll-margin-top: calc(7rem / var(--canvas-scale, 1));
 }
