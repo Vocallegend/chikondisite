@@ -2,7 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!--
+      One layout, every screen.
+
+      The site is designed as a 1280px-wide desktop canvas (its content
+      container caps at 80rem). Phones and tablets are told the layout
+      viewport is that same 1280px, so the browser scales the whole desktop
+      page down to fit the screen instead of reflowing it into a separate
+      narrow layout. Desktop browsers ignore the width hint, so they are
+      unchanged. Zoom is left enabled for anyone who needs to read closer.
+    -->
+    <meta name="viewport" content="width=1280, viewport-fit=cover" />
     <meta name="color-scheme" content="dark light" />
     <meta name="theme-color" content="#0b0f1a" />
     <title>Chikondi — Real connections start with Chikondi</title>
