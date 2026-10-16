@@ -201,6 +201,80 @@
 }
 
 /*
+ * The header brand mark.
+ *
+ * /brand/chikondi-mark.png is the heart on its own — not the stacked lockup the
+ * app ships, whose wordmark is illegible at logo size beside the same word set
+ * as live text (see scripts/prepare-assets.mjs). It sits straight on the dark
+ * bar, so it carries a soft brand-tinted shadow to lift it off the background
+ * instead of a box drawn around it.
+ */
+.site-header-logo {
+  filter: drop-shadow(0 3px 10px color-mix(in oklab, var(--color-brand-500) 45%, transparent));
+}
+
+/*
+ * The drawer toggle's icon.
+ *
+ * Drawn from three spans rather than an icon set so they can fold into an X:
+ * the outer bars slide to the centre and cross, the middle bar fades out. Every
+ * length is a variable, so the narrow-device rules below scale the whole icon
+ * without redoing the geometry.
+ */
+.site-nav-burger {
+  --burger-width: 1.25rem;
+  --burger-bar: 0.125rem;
+  --burger-gap: 0.3125rem;
+  position: relative;
+  display: block;
+  width: var(--burger-width);
+  height: calc(var(--burger-bar) * 3 + var(--burger-gap) * 2);
+}
+
+.site-nav-burger > span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: var(--burger-bar);
+  border-radius: 999px;
+  background: currentColor;
+  transition:
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 160ms linear;
+}
+
+.site-nav-burger > span:nth-child(1) {
+  top: 0;
+}
+
+.site-nav-burger > span:nth-child(2) {
+  top: calc(var(--burger-bar) + var(--burger-gap));
+}
+
+.site-nav-burger > span:nth-child(3) {
+  top: calc((var(--burger-bar) + var(--burger-gap)) * 2);
+}
+
+.site-nav-burger.is-open > span:nth-child(1) {
+  transform: translateY(calc(var(--burger-bar) + var(--burger-gap))) rotate(45deg);
+}
+
+.site-nav-burger.is-open > span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0.35);
+}
+
+.site-nav-burger.is-open > span:nth-child(3) {
+  transform: translateY(calc(-1 * (var(--burger-bar) + var(--burger-gap)))) rotate(-45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-nav-burger > span {
+    transition: none;
+  }
+}
+
+/*
  * A narrow screen — see public/fit.js.
  *
  * The layout viewport is pinned at 1280px so the desktop layout is used
@@ -279,9 +353,10 @@
   height: 3.75rem;
 }
 
-.narrow-device .site-nav-toggle svg {
-  width: 1.875rem;
-  height: 1.875rem;
+.narrow-device .site-nav-burger {
+  --burger-width: 1.75rem;
+  --burger-bar: 0.25rem;
+  --burger-gap: 0.5rem;
 }
 
 /* The header grew, so the page below it has to clear the new height. */

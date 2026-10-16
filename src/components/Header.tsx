@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 import { motion, useScroll, useSpring } from "motion/react";
-import { Download, Menu } from "lucide-react";
+import { Download } from "lucide-react";
 import { primaryNav, site } from "@/data/site";
 import { ButtonLink } from "./Button";
 import { NavDrawer } from "./NavDrawer";
@@ -71,24 +71,25 @@ export function Header() {
     <>
       <header
         className={[
-          "fixed inset-x-0 top-0 z-50 transition-colors duration-300",
+          "fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,box-shadow] duration-300",
           scrolled || open
-            ? "border-b border-white/10 bg-ink-950/85 backdrop-blur-xl"
+            ? "border-b border-white/10 bg-ink-950/85 shadow-[0_18px_50px_-28px_rgba(0,0,0,0.95)] backdrop-blur-xl"
             : "border-b border-transparent",
         ].join(" ")}
       >
         <div className="site-header-inner container-page flex h-16 items-center justify-between gap-4 sm:h-18">
           <Link
             to="/"
-            className="site-header-brand flex items-center gap-2.5 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-400"
+            className="site-header-brand group flex items-center gap-2.5 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-400"
             aria-label={`${site.name} home`}
           >
             <img
-              src="/brand/chikondi-logo-256.png"
+              src="/brand/chikondi-mark.png"
               alt=""
-              width={32}
-              height={32}
-              className="site-header-logo h-8 w-8 rounded-lg"
+              width={40}
+              height={40}
+              draggable={false}
+              className="site-header-logo h-9 w-9 transition-transform duration-300 ease-out group-hover:scale-105"
             />
             <span className="site-header-name text-lg font-bold tracking-tight text-white">
               {site.name}
@@ -108,7 +109,7 @@ export function Header() {
                   [
                     linkBase,
                     isActive
-                      ? "bg-white/10 text-white"
+                      ? "bg-white/10 text-white ring-1 ring-inset ring-white/10"
                       : "text-ink-300 hover:-translate-y-px hover:bg-white/5 hover:text-white",
                   ].join(" ")
                 }
@@ -132,13 +133,14 @@ export function Header() {
               aria-label={open ? "Close menu" : "Open menu"}
               className="site-nav-toggle inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-ink-100 transition hover:border-white/30 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 lg:hidden"
             >
-              <motion.span
-                animate={{ rotate: open ? 90 : 0, scale: open ? 0.85 : 1 }}
-                transition={{ type: "spring", stiffness: 400, damping: 26 }}
-                className="inline-flex"
+              <span
+                className={["site-nav-burger", open && "is-open"].filter(Boolean).join(" ")}
+                aria-hidden="true"
               >
-                <Menu className="h-5 w-5" aria-hidden="true" />
-              </motion.span>
+                <span />
+                <span />
+                <span />
+              </span>
             </button>
           </div>
         </div>

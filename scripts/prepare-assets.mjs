@@ -39,6 +39,25 @@ const jobs = [
     resize: { width: 512, height: 512, fit: "contain", background: "#0b1120" },
     png: { compressionLevel: 9 },
   },
+  // The master is a lockup: the heart mark sits above the "chikondi" wordmark.
+  // The header sets that wordmark as live text and needs the mark on its own —
+  // the whole lockup at logo size turns the word into a smudge next to the very
+  // same word. The crop box is measured on the 1254px master (heart occupies
+  // x 210..1075, y 55..745; the wordmark's ascenders begin at y~747, so the box
+  // stops above them) and carries a little padding. `contain` keeps it square
+  // and transparent, so a width- or height-constrained box crops nothing.
+  {
+    from: "public/chikondi-logo.png",
+    to: "brand/chikondi-mark.png",
+    extract: { left: 196, top: 41, width: 894, height: 704 },
+    resize: {
+      width: 256,
+      height: 256,
+      fit: "contain",
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+    png: { compressionLevel: 9 },
+  },
   // Real in-app artwork, copied at their shipped resolution.
   { from: "src/assets/onboarding/welcome.jpg", to: "app/welcome.jpg", copy: true },
   { from: "src/assets/onboarding/connect-safely.jpg", to: "app/connect-safely.jpg", copy: true },
@@ -60,6 +79,7 @@ for (const job of jobs) {
     continue;
   }
   let pipe = sharp(src);
+  if (job.extract) pipe = pipe.extract(job.extract);
   if (job.resize) pipe = pipe.resize(job.resize);
   if (job.png) pipe = pipe.png(job.png);
   if (job.jpeg) pipe = pipe.jpeg(job.jpeg);
