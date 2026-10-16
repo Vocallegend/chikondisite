@@ -11,8 +11,14 @@
       page down to fit the screen instead of reflowing it into a separate
       narrow layout. Desktop browsers ignore the width hint, so they are
       unchanged. Zoom is left enabled for anyone who needs to read closer.
+
+      Most mobile browsers shrink the page to fit on their own. A few do not,
+      and leave the 1280px layout at 1:1 so the visitor can only pan across a
+      page they see a third of. /fit.js is included render-blocking below to
+      pin initial-scale for those, so the first paint is already fitted.
     -->
-    <meta name="viewport" content="width=1280, viewport-fit=cover" />
+    <meta name="viewport" content="width=1280" />
+    <script src="/fit.js"></script>
     <meta name="color-scheme" content="dark light" />
     <meta name="theme-color" content="#0b0f1a" />
     <title>Chikondi — Real connections start with Chikondi</title>
