@@ -21,6 +21,8 @@ import {
   type ReleaseEntry,
 } from "@shared/release";
 import rawManifest from "@/data/release.json";
+import { reportDiagnostic } from "@/lib/diagnostics";
+import { fetchWithTimeout, RequestTimeoutError } from "@/lib/http";
 
 export const manifest = parseReleaseManifest(rawManifest);
 export const bundledLatest: ReleaseEntry | null = latestPublished(manifest);
@@ -30,6 +32,15 @@ export { formatBytes, formatChecksum, formatDate };
 
 /** The stable, version-independent download link served by this site. */
 export const STABLE_DOWNLOAD_PATH = "/downloads/chikondi.apk";
+
+/**
+ * How long the live lookup may take before the page gives up on it.
+ *
+ * The lookup only refines what the bundled manifest already says, so a slow
+ * or unreachable server must never keep a visitor waiting: the timeout turns a
+ * hang into a fall back to the build-time record.
+ */
+const LIVE_REQUEST_TIMEOUT_MS = 8_000;
 
 type LivePayload = {
   versionCode: number;
@@ -85,10 +96,14 @@ export function useLatestRelease(): LatestReleaseState {
 
     const load = async () => {
       try {
-        const response = await fetch("/api/releases/latest", {
-          signal: controller.signal,
-          headers: { accept: "application/json" },
-        });
+        const response = await fetchWithTimeout(
+          "/api/releases/latest",
+          {
+            signal: controller.signal,
+            headers: { accept: "application/json" },
+          },
+          LIVE_REQUEST_TIMEOUT_MS,
+        );
         if (!response.ok) return;
         const data: unknown = await response.json();
         if (cancelled || !isLivePayload(data)) return;
@@ -110,8 +125,22 @@ export function useLatestRelease(): LatestReleaseState {
           downloadAvailable: data.downloadAvailable,
           stableDownloadPath: data.stableDownloadUrl || STABLE_DOWNLOAD_PATH,
         });
-      } catch {
+      } catch (error) {
         /* keep the build-time record */
+        if (cancelled) return;
+        if (error instanceof RequestTimeoutError) {
+          reportDiagnostic(
+            "timeout",
+            "Live release lookup timed out; showing the bundled release record.",
+            "/api/releases/latest",
+          );
+        } else {
+          reportDiagnostic(
+            "network",
+            "Live release lookup failed; showing the bundled release record.",
+            error instanceof Error ? error.message : String(error),
+          );
+        }
       }
     };
 

@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:smoke": "node scripts/smoke-test.mjs",
     "lint": "eslint .",
     "release:publish": "node scripts/publish-apk.mjs",
     "release:manifest": "node scripts/generate-release-manifest.mjs",

@@ -23,8 +23,12 @@
  * they are sized for the hand rather than for the canvas (see styles.css).
  *
  * No inline script: the site's CSP is `script-src 'self'`, so this is served
- * as a normal same-origin file and included render-blocking from <head> so the
- * first paint is already fitted and already marked.
+ * No inline script: the site's CSP is `script-src 'self'`, so this is served
+ * as a normal same-origin file and included from <head> with `defer`. Deferred
+ * scripts run in document order before the module bundle, so the viewport is
+ * fitted and `.narrow-device` is set before the first React paint, while a
+ * stalled connection can no longer hold up the parser (and with it the entire
+ * page) waiting for this file.
  */
 (function () {
   var CANVAS = 1280;

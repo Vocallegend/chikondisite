@@ -8,6 +8,7 @@
  * success message.
  */
 import { validateContact } from "@shared/contact";
+import { fetchWithTimeout, RequestTimeoutError } from "@/lib/http";
 
 export type ContactStatus = { configured: boolean; fallbackEmail: string | null };
 
@@ -25,7 +26,7 @@ export type SubmitResult =
 
 export async function fetchContactStatus(signal?: AbortSignal): Promise<ContactStatus> {
   try {
-    const response = await fetch("/api/contact", {
+    const response = await fetchWithTimeout("/api/contact", {
       signal,
       headers: { accept: "application/json" },
     });
@@ -47,15 +48,33 @@ export async function fetchContactStatus(signal?: AbortSignal): Promise<ContactS
 /** The same validation the server runs, for inline errors while typing. */
 export const localValidation = validateContact;
 
+/**
+ * Sending a message may legitimately take a while on a slow connection, but
+ * it must still end: after this long the form reports the timeout instead of
+ * leaving the visitor staring at a button that never comes back.
+ */
+const SUBMIT_TIMEOUT_MS = 15_000;
+
 export async function submitContact(payload: Record<string, unknown>): Promise<SubmitResult> {
   let response: Response;
   try {
-    response = await fetch("/api/contact", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch {
+    response = await fetchWithTimeout(
+      "/api/contact",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+      SUBMIT_TIMEOUT_MS,
+    );
+  } catch (error) {
+    if (error instanceof RequestTimeoutError) {
+      return {
+        ok: false,
+        kind: "error",
+        message: "That took too long to send. Please check your connection and try again.",
+      };
+    }
     return {
       ok: false,
       kind: "error",

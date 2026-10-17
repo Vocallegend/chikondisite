@@ -14,11 +14,24 @@
 
       Most mobile browsers shrink the page to fit on their own. A few do not,
       and leave the 1280px layout at 1:1 so the visitor can only pan across a
-      page they see a third of. /fit.js is included render-blocking below to
-      pin initial-scale for those, so the first paint is already fitted.
+      page they see a third of. /fit.js is included (deferred, see below) to
+      pin initial-scale for those, and it runs before the app bundle so the
+      first React paint is already fitted.
     -->
     <meta name="viewport" content="width=1280" />
-    <script src="/fit.js"></script>
+    <!--
+      fit.js and boot.js are deferred, not render-blocking.
+
+      A classic (non-deferred) <script> in <head> stops the parser until the
+      file arrives, so on a stalled or very slow connection nothing below this
+      line — not even <div id="root"> — is ever parsed and the visitor waits on
+      a blank screen indefinitely. Both files are tiny and deferred scripts run
+      in document order, so fit.js still executes before the app bundle (a
+      module script is deferred too) and the layout is fitted before React
+      renders; boot.js therefore also always loads before the app.
+    -->
+    <script defer src="/fit.js"></script>
+    <script defer src="/boot.js"></script>
     <meta name="color-scheme" content="dark light" />
     <meta name="theme-color" content="#0b0f1a" />
     <title>Chikondi — Real connections start with Chikondi</title>
@@ -41,13 +54,110 @@
     <link rel="manifest" href="/manifest.webmanifest" />
   </head>
   <body>
+    <!--
+      Static boot fallback — real HTML, no JavaScript and no stylesheet.
+
+      The React app replaces this element on its first successful commit (see
+      src/App.tsx). Until then — and permanently, if the JavaScript bundle
+      never arrives, fails to download, or throws while starting — the visitor
+      still sees Chikondi branding, an explanation and a working link to the
+      APK instead of an empty screen. The styles are inline on purpose: the
+      site CSP allows 'unsafe-inline' styles, and inline styling means this
+      paints even if the compiled stylesheet is still loading or blocked.
+
+      If the app has not booted after the watchdog period, /boot.js reveals the
+      note below with a reload link.
+    -->
+    <div
+      id="boot-fallback"
+      style="
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 1.5rem;
+        background: #0b0f1a;
+        color: #f8fafc;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          &quot;Segoe UI&quot;,
+          Roboto,
+          sans-serif;
+        text-align: center;
+      "
+    >
+      <div style="max-width: 40rem">
+        <img
+          src="/brand/chikondi-logo.png"
+          alt=""
+          width="80"
+          height="80"
+          style="display: block; margin: 0 auto 1.25rem; border-radius: 20px"
+        />
+        <h1 style="margin: 0; font-size: 2.25rem; letter-spacing: -0.02em">Chikondi</h1>
+        <p style="margin: 1rem 0 0; line-height: 1.6; color: #cbd5e1">
+          Real connections start with Chikondi. Meet people near you and build meaningful
+          connections on your Android phone.
+        </p>
+        <p style="margin: 1.75rem 0 0">
+          <a
+            href="/downloads/chikondi.apk"
+            style="
+              display: inline-block;
+              padding: 0.95rem 1.9rem;
+              border-radius: 999px;
+              background: #ff5a6a;
+              color: #0b0f1a;
+              font-weight: 700;
+              text-decoration: none;
+            "
+            >Download the APK</a
+          >
+        </p>
+        <p style="margin: 0.75rem 0 0; font-size: 0.85rem; color: #94a3b8">
+          <a href="/download" style="color: #cbd5e1">Download page</a> ·
+          <a href="/install" style="color: #cbd5e1">Install guide</a> ·
+          <a href="/help" style="color: #cbd5e1">Help</a>
+        </p>
+        <p
+          id="boot-fallback-note"
+          role="status"
+          hidden
+          style="
+            margin: 1.75rem 0 0;
+            padding: 1rem;
+            border-radius: 12px;
+            background: rgba(255, 90, 106, 0.12);
+            border: 1px solid rgba(255, 90, 106, 0.4);
+            color: #fecaca;
+            font-size: 0.95rem;
+            line-height: 1.5;
+          "
+        >
+          <span id="boot-fallback-message"></span>
+          <a href="/" style="color: #f8fafc; font-weight: 600">Reload the page</a>
+        </p>
+      </div>
+    </div>
     <div id="root"></div>
     <noscript>
-      <div style="max-width: 40rem; margin: 4rem auto; padding: 0 1.5rem; font-family: system-ui, sans-serif; color: #f8fafc; background: #0b0f1a; line-height: 1.6">
+      <div
+        style="
+          max-width: 40rem;
+          margin: 4rem auto;
+          padding: 0 1.5rem;
+          font-family: system-ui, sans-serif;
+          color: #f8fafc;
+          background: #0b0f1a;
+          line-height: 1.6;
+        "
+      >
         <h1>Chikondi</h1>
         <p>
-          This website needs JavaScript to run. You can still download the official
-          Chikondi Android app directly: open
+          This website needs JavaScript to run. You can still download the official Chikondi Android
+          app directly: open
           <a style="color: #ff5a6a" href="/downloads/chikondi.apk">/downloads/chikondi.apk</a>
           in your browser.
         </p>
